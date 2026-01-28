@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FixedBill } from '../types';
 import { ICONS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/finance';
+import { fixedBillsApi } from '../services/apiService';
 
 interface FixedBillsManagerProps {
   bills: FixedBill[];
@@ -56,17 +57,30 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
       );
 
       if (recurringFromPrev.length > 0) {
-        const newBills = recurringFromPrev.map(b => ({
-          ...b,
-          id: Math.random().toString(36).substr(2, 9),
-          month: viewingMonth,
-          year: viewingYear,
-          isPaid: false
-        }));
-        setBills(prev => [...prev, ...newBills]);
+        const createRecurringBills = async () => {
+          try {
+            const newBillsPromises = recurringFromPrev.map(b => 
+              fixedBillsApi.create({
+                name: b.name,
+                category: b.category,
+                amount: b.amount,
+                dueDay: b.dueDay,
+                month: viewingMonth,
+                year: viewingYear,
+                isPaid: false,
+                isRecurring: b.isRecurring
+              })
+            );
+            const createdBills = await Promise.all(newBillsPromises);
+            setBills(prev => [...prev, ...createdBills]);
+          } catch (error) {
+            console.error('Erro ao criar contas recorrentes:', error);
+          }
+        };
+        createRecurringBills();
       }
     }
-  }, [viewingMonth, viewingYear, bills, setBills]);
+  }, [viewingMonth, viewingYear]);
 
   const formatInputToCurrency = (value: string) => {
     let digits = value.replace(/\D/g, '');
@@ -114,49 +128,70 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
     setModalConfig({ isOpen: true, mode: 'edit', billId: bill.id });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseCurrencyToNumber(formData.amount);
     const numDueDay = parseInt(formData.dueDay) || 1;
     if (!formData.name || numAmount <= 0) return;
 
-    if (modalConfig.mode === 'add') {
-      const newBill: FixedBill = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: formData.name,
-        category: formData.category,
-        amount: numAmount,
-        dueDay: numDueDay,
-        month: viewingMonth,
-        year: viewingYear,
-        isPaid: formData.isPaid,
-        isRecurring: formData.isRecurring
-      };
-      setBills(prev => [...prev, newBill]);
-    } else {
-      setBills(prev => prev.map(b => b.id === modalConfig.billId ? {
-        ...b,
-        name: formData.name,
-        category: formData.category,
-        amount: numAmount,
-        dueDay: numDueDay,
-        isRecurring: formData.isRecurring,
-        isPaid: formData.isPaid
-      } : b));
+    try {
+      if (modalConfig.mode === 'add') {
+        const newBill = {
+          name: formData.name,
+          category: formData.category,
+          amount: numAmount,
+          dueDay: numDueDay,
+          month: viewingMonth,
+          year: viewingYear,
+          isPaid: formData.isPaid,
+          isRecurring: formData.isRecurring
+        };
+        const created = await fixedBillsApi.create(newBill);
+        setBills(prev => [...prev, created]);
+      } else {
+        const updated = await fixedBillsApi.update(modalConfig.billId!, {
+          name: formData.name,
+          category: formData.category,
+          amount: numAmount,
+          dueDay: numDueDay,
+          isRecurring: formData.isRecurring,
+          isPaid: formData.isPaid
+        });
+        setBills(prev => prev.map(b => b.id === modalConfig.billId ? updated : b));
+      }
+
+      setModalConfig({ ...modalConfig, isOpen: false });
+    } catch (error) {
+      console.error('Erro ao salvar conta fixa:', error);
+      alert('Erro ao salvar conta fixa');
     }
-
-    setModalConfig({ ...modalConfig, isOpen: false });
   };
 
-  const togglePaid = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening edit modal
-    setBills(prev => prev.map(b => b.id === id ? { ...b, isPaid: !b.isPaid } : b));
+  const togglePaid = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const bill = bills.find(b => b.id === id);
+      if (!bill) return;
+      
+      const updated = await fixedBillsApi.update(id, { isPaid: !bill.isPaid });
+      setBills(prev => prev.map(b => b.id === id ? updated : b));
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      alert('Erro ao atualizar status');
+    }
   };
 
-  const deleteBill = (id: string) => {
+  const deleteBill = async (id: string) => {
     if (!confirm("Excluir esta conta?")) return;
-    setBills(prev => prev.filter(b => b.id !== id));
-    setModalConfig({ ...modalConfig, isOpen: false });
+    
+    try {
+      await fixedBillsApi.delete(id);
+      setBills(prev => prev.filter(b => b.id !== id));
+      setModalConfig({ ...modalConfig, isOpen: false });
+    } catch (error) {
+      console.error('Erro ao deletar conta fixa:', error);
+      alert('Erro ao deletar conta fixa');
+    }
   };
 
   const changeMonth = (delta: number) => {

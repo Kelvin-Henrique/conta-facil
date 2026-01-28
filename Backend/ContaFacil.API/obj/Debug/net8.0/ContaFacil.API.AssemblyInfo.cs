@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ContaFacil.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+39f3c9ae87a8f4ad78a9fdfe0e6634a384a733e2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14b1f37b45e42f699aec7094aa02961216c7efa8")]
 [assembly: System.Reflection.AssemblyProductAttribute("ContaFacil.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ContaFacil.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -4,6 +4,7 @@ import { CreditCard, Purchase, MonthlyBill } from '../types';
 import { ICONS } from '../constants';
 import { formatCurrency, calculateBills, getBestDayToBuy } from '../utils/finance';
 import TransactionsManager from './TransactionsManager';
+import { creditCardsApi } from '../services/apiService';
 
 interface CardsManagerProps {
   cards: CreditCard[];
@@ -42,28 +43,38 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
     setCardModalConfig({ isOpen: true, mode: 'edit', cardId: card.id });
   };
 
-  const saveCard = () => {
+  const saveCard = async () => {
     if (!cardFormData.name) return;
     
-    if (cardModalConfig.mode === 'add') {
-      const card: CreditCard = {
-        ...cardFormData,
-        id: Math.random().toString(36).substr(2, 9),
-      };
-      setCards([...cards, card]);
-      setSelectedCardId(card.id);
-    } else {
-      setCards(cards.map(c => c.id === cardModalConfig.cardId ? { ...c, ...cardFormData } : c));
+    try {
+      if (cardModalConfig.mode === 'add') {
+        const created = await creditCardsApi.create(cardFormData);
+        setCards([...cards, created]);
+        setSelectedCardId(created.id);
+      } else {
+        const updated = await creditCardsApi.update(cardModalConfig.cardId!, cardFormData);
+        setCards(cards.map(c => c.id === cardModalConfig.cardId ? updated : c));
+      }
+      
+      setCardModalConfig({ isOpen: false, mode: 'add' });
+    } catch (error) {
+      console.error('Erro ao salvar cartão:', error);
+      alert('Erro ao salvar cartão');
     }
-    
-    setCardModalConfig({ isOpen: false, mode: 'add' });
   };
 
-  const removeCard = (id: string) => {
+  const removeCard = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir este cartão? Todas as compras vinculadas serão afetadas.")) return;
-    setCards(cards.filter(c => c.id !== id));
-    if (selectedCardId === id) setSelectedCardId(null);
-    setCardModalConfig({ isOpen: false, mode: 'add' });
+    
+    try {
+      await creditCardsApi.delete(id);
+      setCards(cards.filter(c => c.id !== id));
+      if (selectedCardId === id) setSelectedCardId(null);
+      setCardModalConfig({ isOpen: false, mode: 'add' });
+    } catch (error) {
+      console.error('Erro ao deletar cartão:', error);
+      alert('Erro ao deletar cartão');
+    }
   };
 
   const handleCardChipClick = (card: CreditCard) => {

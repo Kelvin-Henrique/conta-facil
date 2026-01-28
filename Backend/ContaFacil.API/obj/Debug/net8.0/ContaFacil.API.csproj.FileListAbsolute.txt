@@ -112,3 +112,4 @@ C:\Users\Kelvin Henrique\Desktop\ContaFaciil\Backend\ContaFacil.API\obj\Debug\ne
 C:\Users\Kelvin Henrique\Desktop\ContaFaciil\Backend\ContaFacil.API\obj\Debug\net8.0\ContaFacil.API.pdb
 C:\Users\Kelvin Henrique\Desktop\ContaFaciil\Backend\ContaFacil.API\obj\Debug\net8.0\ContaFacil.API.genruntimeconfig.cache
 C:\Users\Kelvin Henrique\Desktop\ContaFaciil\Backend\ContaFacil.API\obj\Debug\net8.0\ref\ContaFacil.API.dll
+C:\Users\Kelvin Henrique\Desktop\ContaFaciil\Backend\ContaFacil.API\obj\Debug\net8.0\ContaFacil.API.sourcelink.json

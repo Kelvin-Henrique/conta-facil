@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Purchase, CreditCard } from '../types';
 import { ICONS, CATEGORIES } from '../constants';
+import { purchasesApi } from '../services/apiService';
 
 interface TransactionsManagerProps {
   isOpen: boolean;
@@ -58,36 +59,42 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
     setFormData({ ...formData, totalAmount: formatted });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const targetCardId = selectedCardId || cards[0]?.id;
     const numericAmount = parseCurrencyToNumber(formData.totalAmount);
 
     if (!formData.description || !targetCardId || numericAmount <= 0) return;
 
-    const newPurchase: Purchase = {
-      id: Math.random().toString(36).substr(2, 9),
-      description: formData.description,
-      cardId: targetCardId,
-      category: formData.category,
-      date: formData.date,
-      totalAmount: numericAmount,
-      installments: formData.installments
-    };
+    try {
+      const newPurchase = {
+        description: formData.description,
+        cardId: targetCardId,
+        category: formData.category,
+        date: formData.date,
+        totalAmount: numericAmount,
+        installments: formData.installments
+      };
 
-    setPurchases(prev => [...prev, newPurchase]);
-    setFeedback("Compra lançada com sucesso!");
-    setTimeout(() => {
-        setFeedback(null);
-        onClose();
-        setFormData({
-          description: '',
-          category: CATEGORIES[0],
-          date: new Date().toISOString().split('T')[0],
-          totalAmount: '',
-          installments: 1
-        });
-    }, 1200);
+      const created = await purchasesApi.create(newPurchase);
+      setPurchases(prev => [...prev, created]);
+      setFeedback("Compra lançada com sucesso!");
+      setTimeout(() => {
+          setFeedback(null);
+          onClose();
+          setFormData({
+            description: '',
+            category: CATEGORIES[0],
+            date: new Date().toISOString().split('T')[0],
+            totalAmount: '',
+            installments: 1
+          });
+      }, 1200);
+    } catch (error) {
+      console.error('Erro ao criar compra:', error);
+      setFeedback("Erro ao lançar compra");
+      setTimeout(() => setFeedback(null), 2000);
+    }
   };
 
   const adjustInstallments = (delta: number) => {

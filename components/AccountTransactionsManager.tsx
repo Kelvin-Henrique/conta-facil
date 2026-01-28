@@ -47,8 +47,7 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
     const numAmount = parseCurrencyToNumber(formData.amount);
     if (!formData.description || !formData.accountId || numAmount <= 0) return;
 
-    const newTransaction: AccountTransaction = {
-      id: Math.random().toString(36).substr(2, 9),
+    const newTransaction = {
       accountId: formData.accountId,
       description: formData.description,
       category: formData.category,
@@ -56,7 +55,7 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
       amount: numAmount
     };
 
-    onAddTransaction(newTransaction);
+    onAddTransaction(newTransaction as AccountTransaction);
     setIsModalOpen(false);
     setFormData({
       ...formData,

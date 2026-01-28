@@ -8,50 +8,59 @@ import AccountTransactionsManager from './components/AccountTransactionsManager'
 import FixedBillsManager from './components/FixedBillsManager';
 import Login from './components/Login';
 import { BankAccount, CreditCard, Purchase, AccountTransaction, FixedBill } from './types';
+import { 
+  bankAccountsApi, 
+  creditCardsApi, 
+  purchasesApi, 
+  accountTransactionsApi, 
+  fixedBillsApi 
+} from './services/apiService';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [loading, setLoading] = useState(true);
   
   // Auth state
   const [user, setUser] = useState<string | null>(() => {
     return localStorage.getItem('user');
   });
 
-  const [accounts, setAccounts] = useState<BankAccount[]>(() => {
-    const saved = localStorage.getItem('accounts');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Reserva Emergência', bankName: 'Nubank', balance: 5000 },
-      { id: '2', name: 'Conta Salário', bankName: 'Itaú', balance: 2500 }
-    ];
-  });
+  const [accounts, setAccounts] = useState<BankAccount[]>([]);
+  const [cards, setCards] = useState<CreditCard[]>([]);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [accountTransactions, setAccountTransactions] = useState<AccountTransaction[]>([]);
+  const [fixedBills, setFixedBills] = useState<FixedBill[]>([]);
 
-  const [cards, setCards] = useState<CreditCard[]>(() => {
-    const saved = localStorage.getItem('cards');
-    return saved ? JSON.parse(saved) : [
-      { id: 'c1', name: 'Visa Infinite', dueDay: 15, closingDay: 5 }
-    ];
-  });
+  // Carregar dados da API
+  useEffect(() => {
+    if (user) {
+      loadAllData();
+    }
+  }, [user]);
 
-  const [purchases, setPurchases] = useState<Purchase[]>(() => {
-    const saved = localStorage.getItem('purchases');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [accountTransactions, setAccountTransactions] = useState<AccountTransaction[]>(() => {
-    const saved = localStorage.getItem('accountTransactions');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [fixedBills, setFixedBills] = useState<FixedBill[]>(() => {
-    const saved = localStorage.getItem('fixedBills');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => { localStorage.setItem('accounts', JSON.stringify(accounts)); }, [accounts]);
-  useEffect(() => { localStorage.setItem('cards', JSON.stringify(cards)); }, [cards]);
-  useEffect(() => { localStorage.setItem('purchases', JSON.stringify(purchases)); }, [purchases]);
-  useEffect(() => { localStorage.setItem('accountTransactions', JSON.stringify(accountTransactions)); }, [accountTransactions]);
-  useEffect(() => { localStorage.setItem('fixedBills', JSON.stringify(fixedBills)); }, [fixedBills]);
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      const [accountsData, cardsData, purchasesData, transactionsData, billsData] = await Promise.all([
+        bankAccountsApi.getAll(),
+        creditCardsApi.getAll(),
+        purchasesApi.getAll(),
+        accountTransactionsApi.getAll(),
+        fixedBillsApi.getAll(),
+      ]);
+      
+      setAccounts(accountsData);
+      setCards(cardsData);
+      setPurchases(purchasesData);
+      setAccountTransactions(transactionsData);
+      setFixedBills(billsData);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = (email: string) => {
     localStorage.setItem('user', email);
@@ -63,28 +72,67 @@ const App: React.FC = () => {
     setUser(null);
   };
 
-  const handleAddAccountTransaction = (transaction: AccountTransaction) => {
-    setAccountTransactions(prev => [...prev, transaction]);
-    setAccounts(prevAccounts => 
-      prevAccounts.map(acc => 
-        acc.id === transaction.accountId ? { ...acc, balance: acc.balance - transaction.amount } : acc
-      )
-    );
+  const handleAddAccountTransaction = async (transaction: AccountTransaction) => {
+    try {
+      const created = await accountTransactionsApi.create(transaction);
+      setAccountTransactions(prev => [...prev, created]);
+      
+      // Atualizar saldo localmente
+      const account = accounts.find(acc => acc.id === transaction.accountId);
+      if (account) {
+        const updatedBalance = account.balance - transaction.amount;
+        await bankAccountsApi.update(account.id, { balance: updatedBalance });
+        setAccounts(prevAccounts => 
+          prevAccounts.map(acc => 
+            acc.id === transaction.accountId ? { ...acc, balance: updatedBalance } : acc
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar transação:', error);
+      alert('Erro ao adicionar transação');
+    }
   };
 
-  const handleDeleteAccountTransaction = (id: string) => {
-    const transaction = accountTransactions.find(t => t.id === id);
-    if (!transaction) return;
-    setAccounts(prevAccounts => 
-      prevAccounts.map(acc => 
-        acc.id === transaction.accountId ? { ...acc, balance: acc.balance + transaction.amount } : acc
-      )
-    );
-    setAccountTransactions(prev => prev.filter(t => t.id !== id));
+  const handleDeleteAccountTransaction = async (id: string) => {
+    try {
+      const transaction = accountTransactions.find(t => t.id === id);
+      if (!transaction) return;
+      
+      await accountTransactionsApi.delete(id);
+      
+      // Restaurar saldo
+      const account = accounts.find(acc => acc.id === transaction.accountId);
+      if (account) {
+        const updatedBalance = account.balance + transaction.amount;
+        await bankAccountsApi.update(account.id, { balance: updatedBalance });
+        setAccounts(prevAccounts => 
+          prevAccounts.map(acc => 
+            acc.id === transaction.accountId ? { ...acc, balance: updatedBalance } : acc
+          )
+        );
+      }
+      
+      setAccountTransactions(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar transação:', error);
+      alert('Erro ao deletar transação');
+    }
   };
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="mt-4 text-slate-600">Carregando...</p>
+        </div>
+      </div>
+    );
   }
 
   const renderContent = () => {

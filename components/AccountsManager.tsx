@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BankAccount } from '../types';
 import { ICONS } from '../constants';
 import { formatCurrency } from '../utils/finance';
+import { bankAccountsApi } from '../services/apiService';
 
 interface AccountsManagerProps {
   accounts: BankAccount[];
@@ -27,34 +28,49 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
     setModalConfig({ isOpen: true, mode: 'edit', accountId: acc.id });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.bankName) return;
     
     const balanceNum = parseFloat(formData.balance) || 0;
 
-    if (modalConfig.mode === 'add') {
-      const account: BankAccount = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: formData.name,
-        bankName: formData.bankName,
-        balance: balanceNum,
-      };
-      setAccounts([...accounts, account]);
-    } else {
-      setAccounts(accounts.map(acc => 
-        acc.id === modalConfig.accountId 
-          ? { ...acc, name: formData.name, bankName: formData.bankName, balance: balanceNum } 
-          : acc
-      ));
+    try {
+      if (modalConfig.mode === 'add') {
+        const newAccount = {
+          name: formData.name,
+          bankName: formData.bankName,
+          balance: balanceNum,
+        };
+        const created = await bankAccountsApi.create(newAccount);
+        setAccounts([...accounts, created]);
+      } else {
+        const updated = await bankAccountsApi.update(modalConfig.accountId!, {
+          name: formData.name,
+          bankName: formData.bankName,
+          balance: balanceNum
+        });
+        setAccounts(accounts.map(acc => 
+          acc.id === modalConfig.accountId ? updated : acc
+        ));
+      }
+      
+      setModalConfig({ isOpen: false, mode: 'add' });
+    } catch (error) {
+      console.error('Erro ao salvar conta:', error);
+      alert('Erro ao salvar conta');
     }
-    
-    setModalConfig({ isOpen: false, mode: 'add' });
   };
 
-  const removeAccount = (id: string) => {
+  const removeAccount = async (id: string) => {
     if (!confirm("Deseja realmente excluir esta conta?")) return;
-    setAccounts(accounts.filter(a => a.id !== id));
-    setModalConfig({ isOpen: false, mode: 'add' });
+    
+    try {
+      await bankAccountsApi.delete(id);
+      setAccounts(accounts.filter(a => a.id !== id));
+      setModalConfig({ isOpen: false, mode: 'add' });
+    } catch (error) {
+      console.error('Erro ao deletar conta:', error);
+      alert('Erro ao deletar conta');
+    }
   };
 
   return (
