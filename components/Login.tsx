@@ -1,25 +1,37 @@
 
 import React, { useState } from 'react';
 import { ICONS } from '../constants';
+import { loginUser } from '../services/authService';
 
 interface LoginProps {
-  onLogin: (email: string) => void;
+  onLogin: (userData: any) => void;
+  onRegisterClick: () => void;
+  onForgotPasswordClick: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
+// Timestamp para forçar atualização: 2026-01-28 23:45
+const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick, onForgotPasswordClick }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  console.log('Login component renderizado - Props:', { onRegisterClick, onForgotPasswordClick });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    // Simulação de delay de rede
-    setTimeout(() => {
-      onLogin(email);
+
+    try {
+      const userData = await loginUser(email, password);
+      localStorage.setItem('user', JSON.stringify(userData));
+      onLogin(userData);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login. Tente novamente.');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -34,10 +46,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           
           <div className="text-center mb-10">
             <h1 className="text-3xl font-black text-slate-800 tracking-tight">Conta Fácil</h1>
-            <p className="text-slate-500 font-medium mt-1">
-              {isLogin ? 'Bem-vindo de volta!' : 'Crie sua conta gratuita'}
-            </p>
+            <p className="text-slate-500 font-medium mt-1">Bem-vindo de volta!</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+              <p className="text-sm font-bold text-red-600 text-center">{error}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -64,9 +80,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               />
             </div>
 
-            {isLogin && (
+            {true && (
               <div className="flex justify-end">
-                <button type="button" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    console.log('Botão Esqueceu a senha clicado!');
+                    onForgotPasswordClick();
+                  }}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
                   Esqueceu a senha?
                 </button>
               </div>
@@ -80,17 +103,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {loading ? (
                 <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
-                isLogin ? 'Entrar no Sistema' : 'Criar minha Conta'
+                'Entrar no Sistema'
               )}
             </button>
           </form>
 
           <div className="mt-8 text-center">
             <button 
-              onClick={() => setIsLogin(!isLogin)}
+              type="button"
+              onClick={() => {
+                console.log('Botão Cadastre-se clicado!');
+                onRegisterClick();
+              }}
               className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
             >
-              {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já possui conta? Faça login'}
+              Não tem uma conta? <span className="underline">Cadastre-se</span>
             </button>
           </div>
         </div>

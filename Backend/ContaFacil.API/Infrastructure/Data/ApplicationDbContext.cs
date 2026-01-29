@@ -10,6 +10,7 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+    public DbSet<User> Users { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<CreditCard> CreditCards { get; set; }
     public DbSet<Purchase> Purchases { get; set; }

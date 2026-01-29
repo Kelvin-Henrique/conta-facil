@@ -1,4 +1,14 @@
 
+export interface User {
+  id: number;
+  firebaseUid: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  lastLoginAt?: string;
+  isActive: boolean;
+}
+
 export interface BankAccount {
   id: string;
   name: string;

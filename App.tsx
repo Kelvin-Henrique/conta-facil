@@ -7,6 +7,8 @@ import CardsManager from './components/CardsManager';
 import AccountTransactionsManager from './components/AccountTransactionsManager';
 import FixedBillsManager from './components/FixedBillsManager';
 import Login from './components/Login';
+import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
 import { BankAccount, CreditCard, Purchase, AccountTransaction, FixedBill } from './types';
 import { 
   bankAccountsApi, 
@@ -19,10 +21,18 @@ import {
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
+  const [authView, setAuthView] = useState<'login' | 'register' | 'forgot'>('login');
   
   // Auth state
-  const [user, setUser] = useState<string | null>(() => {
-    return localStorage.getItem('user');
+  const [user, setUser] = useState<any | null>(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error('Erro ao carregar usuário do localStorage:', error);
+      localStorage.removeItem('user');
+      return null;
+    }
   });
 
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
@@ -32,12 +42,6 @@ const App: React.FC = () => {
   const [fixedBills, setFixedBills] = useState<FixedBill[]>([]);
 
   // Carregar dados da API
-  useEffect(() => {
-    if (user) {
-      loadAllData();
-    }
-  }, [user]);
-
   const loadAllData = async () => {
     try {
       setLoading(true);
@@ -62,15 +66,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleLogin = (email: string) => {
-    localStorage.setItem('user', email);
-    setUser(email);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-  };
+  useEffect(() => {
+    if (user) {
+      loadAllData();
+    }
+  }, [user]);
 
   const handleAddAccountTransaction = async (transaction: AccountTransaction) => {
     try {
@@ -120,11 +120,7 @@ const App: React.FC = () => {
     }
   };
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  if (loading) {
+  if (loading && user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -160,9 +156,46 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={handleLogout}>
-      {renderContent()}
-    </Layout>
+    <>
+      {!user ? (
+        authView === 'login' ? (
+          <Login 
+            onLogin={(userData: any) => {
+              setUser(userData);
+              setAuthView('login');
+            }}
+            onRegisterClick={() => {
+              console.log('🟢 Mudando para registro');
+              setAuthView('register');
+            }}
+            onForgotPasswordClick={() => {
+              console.log('🟢 Mudando para esqueci senha');
+              setAuthView('forgot');
+            }}
+          />
+        ) : authView === 'register' ? (
+          <Register 
+            onRegisterSuccess={(userData: any) => {
+              setUser(userData);
+              setAuthView('login');
+            }}
+            onBackToLogin={() => setAuthView('login')}
+          />
+        ) : (
+          <ForgotPassword 
+            onBackToLogin={() => setAuthView('login')}
+          />
+        )
+      ) : (
+        <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={() => {
+          localStorage.removeItem('user');
+          setUser(null);
+          setAuthView('login');
+        }}>
+          {renderContent()}
+        </Layout>
+      )}
+    </>
   );
 };
 

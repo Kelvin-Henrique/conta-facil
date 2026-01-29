@@ -8,6 +8,11 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        // User
+        CreateMap<User, UserDto>();
+        CreateMap<CreateUserDto, User>();
+        CreateMap<UpdateUserDto, User>();
+
         // BankAccount
         CreateMap<BankAccount, BankAccountDto>();
         CreateMap<CreateBankAccountDto, BankAccount>();

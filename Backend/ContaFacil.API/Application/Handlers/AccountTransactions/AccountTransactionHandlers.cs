@@ -22,14 +22,18 @@ public class CreateAccountTransactionCommandHandler : IRequestHandler<CreateAcco
 
     public async Task<AccountTransactionDto> Handle(CreateAccountTransactionCommand request, CancellationToken cancellationToken)
     {
+        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        if (user == null) throw new Exception("Nenhum usuário encontrado");
+
         var transaction = new AccountTransaction
         {
             Id = Guid.NewGuid(),
             BankAccountId = request.BankAccountId,
             Description = request.Description,
             Category = request.Category,
-            Date = request.Date,
-            Amount = request.Amount
+            Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc),
+            Amount = request.Amount,
+            UserId = user.Id
         };
 
         _context.AccountTransactions.Add(transaction);

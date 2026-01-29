@@ -22,12 +22,21 @@ public class CreateCreditCardCommandHandler : IRequestHandler<CreateCreditCardCo
 
     public async Task<CreditCardDto> Handle(CreateCreditCardCommand request, CancellationToken cancellationToken)
     {
+        // TODO: Pegar UserId do contexto de autenticação
+        // Por enquanto, usar o primeiro usuário do banco
+        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        if (user == null)
+        {
+            throw new Exception("Nenhum usuário encontrado no sistema");
+        }
+
         var card = new CreditCard
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             DueDay = request.DueDay,
-            ClosingDay = request.ClosingDay
+            ClosingDay = request.ClosingDay,
+            UserId = user.Id
         };
 
         _context.CreditCards.Add(card);

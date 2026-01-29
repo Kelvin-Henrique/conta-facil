@@ -54,11 +54,16 @@ namespace ContaFacil.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BankAccountId");
 
                     b.HasIndex("Date");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("AccountTransactions", (string)null);
                 });
@@ -89,7 +94,12 @@ namespace ContaFacil.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("BankAccounts", (string)null);
                 });
@@ -117,7 +127,12 @@ namespace ContaFacil.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("CreditCards", (string)null);
                 });
@@ -160,10 +175,15 @@ namespace ContaFacil.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Year")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.HasIndex("Month", "Year");
 
@@ -205,13 +225,63 @@ namespace ContaFacil.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreditCardId");
 
                     b.HasIndex("Date");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Purchases", (string)null);
+                });
+
+            modelBuilder.Entity("ContaFacil.API.Domain.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("FirebaseUid")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("FirebaseUid")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ContaFacil.API.Domain.Entities.AccountTransaction", b =>
@@ -222,7 +292,48 @@ namespace ContaFacil.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ContaFacil.API.Domain.Entities.User", "User")
+                        .WithMany("AccountTransactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("BankAccount");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ContaFacil.API.Domain.Entities.BankAccount", b =>
+                {
+                    b.HasOne("ContaFacil.API.Domain.Entities.User", "User")
+                        .WithMany("BankAccounts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ContaFacil.API.Domain.Entities.CreditCard", b =>
+                {
+                    b.HasOne("ContaFacil.API.Domain.Entities.User", "User")
+                        .WithMany("CreditCards")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ContaFacil.API.Domain.Entities.FixedBill", b =>
+                {
+                    b.HasOne("ContaFacil.API.Domain.Entities.User", "User")
+                        .WithMany("FixedBills")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ContaFacil.API.Domain.Entities.Purchase", b =>
@@ -233,7 +344,15 @@ namespace ContaFacil.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ContaFacil.API.Domain.Entities.User", "User")
+                        .WithMany("Purchases")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("CreditCard");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ContaFacil.API.Domain.Entities.BankAccount", b =>
@@ -243,6 +362,19 @@ namespace ContaFacil.API.Migrations
 
             modelBuilder.Entity("ContaFacil.API.Domain.Entities.CreditCard", b =>
                 {
+                    b.Navigation("Purchases");
+                });
+
+            modelBuilder.Entity("ContaFacil.API.Domain.Entities.User", b =>
+                {
+                    b.Navigation("AccountTransactions");
+
+                    b.Navigation("BankAccounts");
+
+                    b.Navigation("CreditCards");
+
+                    b.Navigation("FixedBills");
+
                     b.Navigation("Purchases");
                 });
 #pragma warning restore 612, 618

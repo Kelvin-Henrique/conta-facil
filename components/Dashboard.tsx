@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BankAccount, CreditCard, Purchase, FixedBill } from '../types';
 import { formatCurrency, calculateBills } from '../utils/finance';
 import { ICONS } from '../constants';
-import { getFinancialAdvice } from '../services/geminiService';
+// import { getFinancialAdvice } from '../services/geminiService'; // Desabilitado temporariamente
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface DashboardProps {
@@ -14,8 +14,9 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixedBills }) => {
-  const [advice, setAdvice] = useState<string>("Carregando dicas financeiras...");
+  const [advice, setAdvice] = useState<string>("Dicas de IA desabilitadas temporariamente.");
 
+  /* Desabilitado temporariamente
   useEffect(() => {
     const loadAdvice = async () => {
       const msg = await getFinancialAdvice(accounts, cards, purchases);
@@ -23,6 +24,7 @@ const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixed
     };
     loadAdvice();
   }, [accounts, cards, purchases]);
+  */
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
   

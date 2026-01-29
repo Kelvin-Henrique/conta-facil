@@ -21,12 +21,16 @@ public class CreateBankAccountCommandHandler : IRequestHandler<CreateBankAccount
 
     public async Task<BankAccountDto> Handle(CreateBankAccountCommand request, CancellationToken cancellationToken)
     {
+        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        if (user == null) throw new Exception("Nenhum usuário encontrado");
+
         var account = new BankAccount
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             BankName = request.BankName,
-            Balance = request.Balance
+            Balance = request.Balance,
+            UserId = user.Id
         };
 
         _context.BankAccounts.Add(account);

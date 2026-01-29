@@ -3,6 +3,7 @@ namespace ContaFacil.API.Domain.Entities;
 public class FixedBill
 {
     public Guid Id { get; set; }
+    public int UserId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public decimal Amount { get; set; }
@@ -13,4 +14,7 @@ public class FixedBill
     public bool IsRecurring { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    
+    // Navigation Properties
+    public User User { get; set; } = null!;
 }

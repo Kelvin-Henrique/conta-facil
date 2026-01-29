@@ -3,6 +3,7 @@ namespace ContaFacil.API.Domain.Entities;
 public class Purchase
 {
     public Guid Id { get; set; }
+    public int UserId { get; set; }
     public Guid CreditCardId { get; set; }
     public string Description { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
@@ -13,5 +14,6 @@ public class Purchase
     public DateTime? UpdatedAt { get; set; }
     
     // Navigation Properties
+    public User User { get; set; } = null!;
     public CreditCard CreditCard { get; set; } = null!;
 }

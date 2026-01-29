@@ -22,15 +22,19 @@ public class CreatePurchaseCommandHandler : IRequestHandler<CreatePurchaseComman
 
     public async Task<PurchaseDto> Handle(CreatePurchaseCommand request, CancellationToken cancellationToken)
     {
+        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        if (user == null) throw new Exception("Nenhum usuário encontrado");
+
         var purchase = new Purchase
         {
             Id = Guid.NewGuid(),
             CreditCardId = request.CreditCardId,
             Description = request.Description,
             Category = request.Category,
-            Date = request.Date,
+            Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc),
             TotalAmount = request.TotalAmount,
-            Installments = request.Installments
+            Installments = request.Installments,
+            UserId = user.Id
         };
 
         _context.Purchases.Add(purchase);

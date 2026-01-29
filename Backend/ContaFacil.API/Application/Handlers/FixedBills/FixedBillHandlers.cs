@@ -22,6 +22,9 @@ public class CreateFixedBillCommandHandler : IRequestHandler<CreateFixedBillComm
 
     public async Task<FixedBillDto> Handle(CreateFixedBillCommand request, CancellationToken cancellationToken)
     {
+        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        if (user == null) throw new Exception("Nenhum usuário encontrado");
+
         var bill = new FixedBill
         {
             Id = Guid.NewGuid(),
@@ -32,7 +35,8 @@ public class CreateFixedBillCommandHandler : IRequestHandler<CreateFixedBillComm
             Month = request.Month,
             Year = request.Year,
             IsPaid = request.IsPaid,
-            IsRecurring = request.IsRecurring
+            IsRecurring = request.IsRecurring,
+            UserId = user.Id
         };
 
         _context.FixedBills.Add(bill);
