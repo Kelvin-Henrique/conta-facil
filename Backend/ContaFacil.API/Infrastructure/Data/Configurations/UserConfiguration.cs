@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ContaFacil.API.Infrastructure.Data.Configurations
 {
-    public class UserConfiguration : IEntityTypeConfiguration<User>
+    public class UserConfiguration : IEntityTypeConfiguration<Usuario>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<Usuario> builder)
         {
             builder.HasKey(u => u.Id);
 
@@ -24,41 +24,41 @@ namespace ContaFacil.API.Infrastructure.Data.Configurations
             builder.HasIndex(u => u.Email)
                 .IsUnique();
 
-            builder.Property(u => u.Name)
+            builder.Property(u => u.Nome)
                 .IsRequired()
                 .HasMaxLength(256);
 
-            builder.Property(u => u.CreatedAt)
+            builder.Property(u => u.CriadoEm)
                 .IsRequired();
 
-            builder.Property(u => u.IsActive)
+            builder.Property(u => u.Ativo)
                 .IsRequired()
                 .HasDefaultValue(true);
 
             // Relacionamentos
-            builder.HasMany(u => u.BankAccounts)
-                .WithOne(b => b.User)
-                .HasForeignKey(b => b.UserId)
+            builder.HasMany(u => u.ContasBancarias)
+                .WithOne(b => b.Usuario)
+                .HasForeignKey(b => b.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(u => u.CreditCards)
-                .WithOne(c => c.User)
-                .HasForeignKey(c => c.UserId)
+            builder.HasMany(u => u.CartoesCredito)
+                .WithOne(c => c.Usuario)
+                .HasForeignKey(c => c.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(u => u.Purchases)
-                .WithOne(p => p.User)
-                .HasForeignKey(p => p.UserId)
+            builder.HasMany(u => u.Compras)
+                .WithOne(p => p.Usuario)
+                .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(u => u.AccountTransactions)
-                .WithOne(t => t.User)
-                .HasForeignKey(t => t.UserId)
+            builder.HasMany(u => u.TransacoesConta)
+                .WithOne(t => t.Usuario)
+                .HasForeignKey(t => t.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(u => u.FixedBills)
-                .WithOne(f => f.User)
-                .HasForeignKey(f => f.UserId)
+            builder.HasMany(u => u.ContasFixas)
+                .WithOne(f => f.Usuario)
+                .HasForeignKey(f => f.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

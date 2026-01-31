@@ -1,19 +1,19 @@
 namespace ContaFacil.API.Domain.Entities;
 
-public class Purchase
+public class Compra
 {
     public Guid Id { get; set; }
-    public int UserId { get; set; }
-    public Guid CreditCardId { get; set; }
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal TotalAmount { get; set; }
-    public int Installments { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public int UsuarioId { get; set; }
+    public Guid CartaoCreditoId { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal ValorTotal { get; set; }
+    public int Parcelas { get; set; }
+    public DateTime CriadoEm { get; set; }
+    public DateTime? AtualizadoEm { get; set; }
     
     // Navigation Properties
-    public User User { get; set; } = null!;
-    public CreditCard CreditCard { get; set; } = null!;
+    public Usuario Usuario { get; set; } = null!;
+    public CartaoCredito CartaoCredito { get; set; } = null!;
 }

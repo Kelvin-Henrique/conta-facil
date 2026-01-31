@@ -1,32 +1,32 @@
 namespace ContaFacil.API.Application.DTOs;
 
-public class PurchaseDto
+public class CompraDto
 {
     public Guid Id { get; set; }
-    public Guid CreditCardId { get; set; }
-    public string CreditCardName { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal TotalAmount { get; set; }
-    public int Installments { get; set; }
+    public Guid CartaoCreditoId { get; set; }
+    public string NomeCartaoCredito { get; set; } = string.Empty;
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal ValorTotal { get; set; }
+    public int Parcelas { get; set; }
 }
 
-public class CreatePurchaseDto
+public class CriarCompraDto
 {
-    public Guid CreditCardId { get; set; }
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal TotalAmount { get; set; }
-    public int Installments { get; set; }
+    public Guid CartaoCreditoId { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal ValorTotal { get; set; }
+    public int Parcelas { get; set; }
 }
 
-public class UpdatePurchaseDto
+public class AtualizarCompraDto
 {
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal TotalAmount { get; set; }
-    public int Installments { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal ValorTotal { get; set; }
+    public int Parcelas { get; set; }
 }

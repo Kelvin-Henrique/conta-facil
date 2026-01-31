@@ -9,22 +9,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContaFacil.API.Application.Handlers.Users
 {
-    // Create User Handler
-    public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
+    // Criar Usuario Handler
+    public class CriarUsuarioCommandHandler : IRequestHandler<CriarUsuarioCommand, UsuarioDto>
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public CreateUserCommandHandler(ApplicationDbContext context, IMapper mapper)
+        public CriarUsuarioCommandHandler(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async Task<UsuarioDto> Handle(CriarUsuarioCommand request, CancellationToken cancellationToken)
         {
             // Verificar se já existe usuário com esse FirebaseUid ou Email
-            var existingUser = await _context.Users
+            var existingUser = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.FirebaseUid == request.FirebaseUid || u.Email == request.Email, cancellationToken);
 
             if (existingUser != null)
@@ -32,68 +32,68 @@ namespace ContaFacil.API.Application.Handlers.Users
                 throw new InvalidOperationException("Usuário já existe");
             }
 
-            var user = new User
+            var user = new Usuario
             {
                 FirebaseUid = request.FirebaseUid,
                 Email = request.Email,
-                Name = request.Name,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
+                Nome = request.Nome,
+                CriadoEm = DateTime.UtcNow,
+                Ativo = true
             };
 
-            _context.Users.Add(user);
+            _context.Usuarios.Add(user);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<UserDto>(user);
+            return _mapper.Map<UsuarioDto>(user);
         }
     }
 
-    // Update User Handler
-    public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserDto>
+    // Atualizar Usuario Handler
+    public class AtualizarUsuarioCommandHandler : IRequestHandler<AtualizarUsuarioCommand, UsuarioDto>
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public UpdateUserCommandHandler(ApplicationDbContext context, IMapper mapper)
+        public AtualizarUsuarioCommandHandler(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+        public async Task<UsuarioDto> Handle(AtualizarUsuarioCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FindAsync(new object[] { request.Id }, cancellationToken);
+            var user = await _context.Usuarios.FindAsync(new object[] { request.Id }, cancellationToken);
             
             if (user == null)
             {
                 throw new KeyNotFoundException($"Usuário com ID {request.Id} não encontrado");
             }
 
-            user.Name = request.Name;
+            user.Nome = request.Nome;
             await _context.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<UserDto>(user);
+            return _mapper.Map<UsuarioDto>(user);
         }
     }
 
-    // Update Last Login Handler
-    public class UpdateLastLoginCommandHandler : IRequestHandler<UpdateLastLoginCommand, Unit>
+    // Atualizar Ultimo Login Handler
+    public class AtualizarUltimoLoginCommandHandler : IRequestHandler<AtualizarUltimoLoginCommand, Unit>
     {
         private readonly ApplicationDbContext _context;
 
-        public UpdateLastLoginCommandHandler(ApplicationDbContext context)
+        public AtualizarUltimoLoginCommandHandler(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<Unit> Handle(UpdateLastLoginCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(AtualizarUltimoLoginCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users
+            var user = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.FirebaseUid == request.FirebaseUid, cancellationToken);
 
             if (user != null)
             {
-                user.LastLoginAt = DateTime.UtcNow;
+                user.UltimoLoginEm = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
             }
 
@@ -101,26 +101,26 @@ namespace ContaFacil.API.Application.Handlers.Users
         }
     }
 
-    // Delete User Handler
-    public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Unit>
+    // Excluir Usuario Handler
+    public class ExcluirUsuarioCommandHandler : IRequestHandler<ExcluirUsuarioCommand, Unit>
     {
         private readonly ApplicationDbContext _context;
 
-        public DeleteUserCommandHandler(ApplicationDbContext context)
+        public ExcluirUsuarioCommandHandler(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(ExcluirUsuarioCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FindAsync(new object[] { request.Id }, cancellationToken);
+            var user = await _context.Usuarios.FindAsync(new object[] { request.Id }, cancellationToken);
             
             if (user == null)
             {
                 throw new KeyNotFoundException($"Usuário com ID {request.Id} não encontrado");
             }
 
-            _context.Users.Remove(user);
+            _context.Usuarios.Remove(user);
             await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
@@ -128,83 +128,83 @@ namespace ContaFacil.API.Application.Handlers.Users
     }
 
     // Query Handlers
-    public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, List<UserDto>>
+    public class ObterTodosUsuariosQueryHandler : IRequestHandler<ObterTodosUsuariosQuery, List<UsuarioDto>>
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public GetAllUsersQueryHandler(ApplicationDbContext context, IMapper mapper)
+        public ObterTodosUsuariosQueryHandler(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<List<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+        public async Task<List<UsuarioDto>> Handle(ObterTodosUsuariosQuery request, CancellationToken cancellationToken)
         {
-            var users = await _context.Users
-                .Where(u => u.IsActive)
-                .OrderByDescending(u => u.CreatedAt)
+            var users = await _context.Usuarios
+                .Where(u => u.Ativo)
+                .OrderByDescending(u => u.CriadoEm)
                 .ToListAsync(cancellationToken);
 
-            return _mapper.Map<List<UserDto>>(users);
+            return _mapper.Map<List<UsuarioDto>>(users);
         }
     }
 
-    public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserDto?>
+    public class ObterUsuarioPorIdQueryHandler : IRequestHandler<ObterUsuarioPorIdQuery, UsuarioDto?>
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public GetUserByIdQueryHandler(ApplicationDbContext context, IMapper mapper)
+        public ObterUsuarioPorIdQueryHandler(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<UserDto?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        public async Task<UsuarioDto?> Handle(ObterUsuarioPorIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FindAsync(new object[] { request.Id }, cancellationToken);
-            return user != null ? _mapper.Map<UserDto>(user) : null;
+            var user = await _context.Usuarios.FindAsync(new object[] { request.Id }, cancellationToken);
+            return user != null ? _mapper.Map<UsuarioDto>(user) : null;
         }
     }
 
-    public class GetUserByFirebaseUidQueryHandler : IRequestHandler<GetUserByFirebaseUidQuery, UserDto?>
+    public class ObterUsuarioPorFirebaseUidQueryHandler : IRequestHandler<ObterUsuarioPorFirebaseUidQuery, UsuarioDto?>
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public GetUserByFirebaseUidQueryHandler(ApplicationDbContext context, IMapper mapper)
+        public ObterUsuarioPorFirebaseUidQueryHandler(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<UserDto?> Handle(GetUserByFirebaseUidQuery request, CancellationToken cancellationToken)
+        public async Task<UsuarioDto?> Handle(ObterUsuarioPorFirebaseUidQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users
+            var user = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.FirebaseUid == request.FirebaseUid, cancellationToken);
             
-            return user != null ? _mapper.Map<UserDto>(user) : null;
+            return user != null ? _mapper.Map<UsuarioDto>(user) : null;
         }
     }
 
-    public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, UserDto?>
+    public class ObterUsuarioPorEmailQueryHandler : IRequestHandler<ObterUsuarioPorEmailQuery, UsuarioDto?>
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public GetUserByEmailQueryHandler(ApplicationDbContext context, IMapper mapper)
+        public ObterUsuarioPorEmailQueryHandler(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<UserDto?> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
+        public async Task<UsuarioDto?> Handle(ObterUsuarioPorEmailQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users
+            var user = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
             
-            return user != null ? _mapper.Map<UserDto>(user) : null;
+            return user != null ? _mapper.Map<UsuarioDto>(user) : null;
         }
     }
 }

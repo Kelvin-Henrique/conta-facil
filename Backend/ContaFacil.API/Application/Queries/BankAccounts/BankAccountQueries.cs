@@ -3,6 +3,6 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Queries.BankAccounts;
 
-public record GetAllBankAccountsQuery : IRequest<List<BankAccountDto>>;
+public record ObterTodasContasBancariasQuery : IRequest<List<ContaBancariaDto>>;
 
-public record GetBankAccountByIdQuery(Guid Id) : IRequest<BankAccountDto?>;
+public record ObterContaBancariaPorIdQuery(Guid Id) : IRequest<ContaBancariaDto?>;

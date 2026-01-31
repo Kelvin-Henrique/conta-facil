@@ -4,39 +4,39 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ContaFacil.API.Infrastructure.Data.Configurations;
 
-public class AccountTransactionConfiguration : IEntityTypeConfiguration<AccountTransaction>
+public class AccountTransactionConfiguration : IEntityTypeConfiguration<TransacaoConta>
 {
-    public void Configure(EntityTypeBuilder<AccountTransaction> builder)
+    public void Configure(EntityTypeBuilder<TransacaoConta> builder)
     {
         builder.ToTable("AccountTransactions");
         
         builder.HasKey(x => x.Id);
         
-        builder.Property(x => x.Description)
+        builder.Property(x => x.Descricao)
             .IsRequired()
             .HasMaxLength(200);
             
-        builder.Property(x => x.Category)
+        builder.Property(x => x.Categoria)
             .IsRequired()
             .HasMaxLength(50);
             
-        builder.Property(x => x.Date)
+        builder.Property(x => x.Data)
             .IsRequired();
             
-        builder.Property(x => x.Amount)
+        builder.Property(x => x.Valor)
             .HasPrecision(18, 2);
             
-        builder.Property(x => x.CreatedAt)
+        builder.Property(x => x.CriadoEm)
             .IsRequired();
             
-        builder.Property(x => x.UpdatedAt);
+        builder.Property(x => x.AtualizadoEm);
             
-        builder.HasOne(x => x.BankAccount)
-            .WithMany(x => x.Transactions)
-            .HasForeignKey(x => x.BankAccountId)
+        builder.HasOne(x => x.ContaBancaria)
+            .WithMany(x => x.Transacoes)
+            .HasForeignKey(x => x.ContaBancariaId)
             .OnDelete(DeleteBehavior.Cascade);
             
-        builder.HasIndex(x => x.BankAccountId);
-        builder.HasIndex(x => x.Date);
+        builder.HasIndex(x => x.ContaBancariaId);
+        builder.HasIndex(x => x.Data);
     }
 }

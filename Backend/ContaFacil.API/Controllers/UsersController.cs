@@ -8,67 +8,67 @@ namespace ContaFacil.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsuariosController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public UsersController(IMediator mediator)
+        public UsuariosController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<UserDto>>> GetAll()
+        public async Task<ActionResult<List<UsuarioDto>>> ObterTodos()
         {
-            var users = await _mediator.Send(new GetAllUsersQuery());
-            return Ok(users);
+            var usuarios = await _mediator.Send(new ObterTodosUsuariosQuery());
+            return Ok(usuarios);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>> GetById(int id)
+        public async Task<ActionResult<UsuarioDto>> ObterPorId(int id)
         {
-            var user = await _mediator.Send(new GetUserByIdQuery(id));
+            var usuario = await _mediator.Send(new ObterUsuarioPorIdQuery(id));
             
-            if (user == null)
+            if (usuario == null)
                 return NotFound();
 
-            return Ok(user);
+            return Ok(usuario);
         }
 
         [HttpGet("firebase/{firebaseUid}")]
-        public async Task<ActionResult<UserDto>> GetByFirebaseUid(string firebaseUid)
+        public async Task<ActionResult<UsuarioDto>> ObterPorFirebaseUid(string firebaseUid)
         {
-            var user = await _mediator.Send(new GetUserByFirebaseUidQuery(firebaseUid));
+            var usuario = await _mediator.Send(new ObterUsuarioPorFirebaseUidQuery(firebaseUid));
             
-            if (user == null)
+            if (usuario == null)
                 return NotFound();
 
-            return Ok(user);
+            return Ok(usuario);
         }
 
         [HttpGet("email/{email}")]
-        public async Task<ActionResult<UserDto>> GetByEmail(string email)
+        public async Task<ActionResult<UsuarioDto>> ObterPorEmail(string email)
         {
-            var user = await _mediator.Send(new GetUserByEmailQuery(email));
+            var usuario = await _mediator.Send(new ObterUsuarioPorEmailQuery(email));
             
-            if (user == null)
+            if (usuario == null)
                 return NotFound();
 
-            return Ok(user);
+            return Ok(usuario);
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
+        public async Task<ActionResult<UsuarioDto>> Criar([FromBody] CriarUsuarioDto dto)
         {
             try
             {
-                var user = await _mediator.Send(new CreateUserCommand(
+                var usuario = await _mediator.Send(new CriarUsuarioCommand(
                     dto.FirebaseUid,
                     dto.Email,
-                    dto.Name
+                    dto.Nome
                 ));
 
-                return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+                return CreatedAtAction(nameof(ObterPorId), new { id = usuario.Id }, usuario);
             }
             catch (InvalidOperationException ex)
             {
@@ -77,12 +77,12 @@ namespace ContaFacil.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserDto dto)
+        public async Task<ActionResult<UsuarioDto>> Atualizar(int id, [FromBody] AtualizarUsuarioDto dto)
         {
             try
             {
-                var user = await _mediator.Send(new UpdateUserCommand(id, dto.Name));
-                return Ok(user);
+                var usuario = await _mediator.Send(new AtualizarUsuarioCommand(id, dto.Nome));
+                return Ok(usuario);
             }
             catch (KeyNotFoundException)
             {
@@ -91,18 +91,18 @@ namespace ContaFacil.API.Controllers
         }
 
         [HttpPost("login/{firebaseUid}")]
-        public async Task<ActionResult> UpdateLastLogin(string firebaseUid)
+        public async Task<ActionResult> AtualizarUltimoLogin(string firebaseUid)
         {
-            await _mediator.Send(new UpdateLastLoginCommand(firebaseUid));
+            await _mediator.Send(new AtualizarUltimoLoginCommand(firebaseUid));
             return Ok();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Excluir(int id)
         {
             try
             {
-                await _mediator.Send(new DeleteUserCommand(id));
+                await _mediator.Send(new ExcluirUsuarioCommand(id));
                 return NoContent();
             }
             catch (KeyNotFoundException)

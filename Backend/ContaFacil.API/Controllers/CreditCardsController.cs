@@ -8,50 +8,50 @@ namespace ContaFacil.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CreditCardsController : ControllerBase
+public class CartoesCreditoController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public CreditCardsController(IMediator mediator)
+    public CartoesCreditoController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<CreditCardDto>>> GetAll()
+    public async Task<ActionResult<List<CartaoCreditoDto>>> ObterTodos()
     {
-        var result = await _mediator.Send(new GetAllCreditCardsQuery());
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterTodosCartoesCreditoQuery());
+        return Ok(resultado);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CreditCardDto>> GetById(Guid id)
+    public async Task<ActionResult<CartaoCreditoDto>> ObterPorId(Guid id)
     {
-        var result = await _mediator.Send(new GetCreditCardByIdQuery(id));
+        var resultado = await _mediator.Send(new ObterCartaoCreditoPorIdQuery(id));
         
-        if (result == null)
+        if (resultado == null)
             return NotFound(new { message = "Cartão de crédito não encontrado" });
 
-        return Ok(result);
+        return Ok(resultado);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreditCardDto>> Create([FromBody] CreateCreditCardDto dto)
+    public async Task<ActionResult<CartaoCreditoDto>> Criar([FromBody] CriarCartaoCreditoDto dto)
     {
-        var command = new CreateCreditCardCommand(dto.Name, dto.DueDay, dto.ClosingDay);
-        var result = await _mediator.Send(command);
+        var comando = new CriarCartaoCreditoCommand(dto.Nome, dto.DiaVencimento, dto.DiaFechamento);
+        var resultado = await _mediator.Send(comando);
         
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(ObterPorId), new { id = resultado.Id }, resultado);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<CreditCardDto>> Update(Guid id, [FromBody] UpdateCreditCardDto dto)
+    public async Task<ActionResult<CartaoCreditoDto>> Atualizar(Guid id, [FromBody] AtualizarCartaoCreditoDto dto)
     {
         try
         {
-            var command = new UpdateCreditCardCommand(id, dto.Name, dto.DueDay, dto.ClosingDay);
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var comando = new AtualizarCartaoCreditoCommand(id, dto.Nome, dto.DiaVencimento, dto.DiaFechamento);
+            var resultado = await _mediator.Send(comando);
+            return Ok(resultado);
         }
         catch (KeyNotFoundException ex)
         {
@@ -60,11 +60,11 @@ public class CreditCardsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Excluir(Guid id)
     {
-        var result = await _mediator.Send(new DeleteCreditCardCommand(id));
+        var resultado = await _mediator.Send(new ExcluirCartaoCreditoCommand(id));
         
-        if (!result)
+        if (!resultado)
             return NotFound(new { message = "Cartão de crédito não encontrado" });
 
         return NoContent();

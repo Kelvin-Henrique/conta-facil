@@ -9,162 +9,162 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContaFacil.API.Application.Handlers.Purchases;
 
-public class CreatePurchaseCommandHandler : IRequestHandler<CreatePurchaseCommand, PurchaseDto>
+public class CriarCompraCommandHandler : IRequestHandler<CriarCompraCommand, CompraDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public CreatePurchaseCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public CriarCompraCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<PurchaseDto> Handle(CreatePurchaseCommand request, CancellationToken cancellationToken)
+    public async Task<CompraDto> Handle(CriarCompraCommand request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        var user = await _context.Usuarios.FirstOrDefaultAsync(cancellationToken);
         if (user == null) throw new Exception("Nenhum usuário encontrado");
 
-        var purchase = new Purchase
+        var purchase = new Compra
         {
             Id = Guid.NewGuid(),
-            CreditCardId = request.CreditCardId,
-            Description = request.Description,
-            Category = request.Category,
-            Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc),
-            TotalAmount = request.TotalAmount,
-            Installments = request.Installments,
-            UserId = user.Id
+            CartaoCreditoId = request.CartaoCreditoId,
+            Descricao = request.Descricao,
+            Categoria = request.Categoria,
+            Data = DateTime.SpecifyKind(request.Data, DateTimeKind.Utc),
+            ValorTotal = request.ValorTotal,
+            Parcelas = request.Parcelas,
+            UsuarioId = user.Id
         };
 
-        _context.Purchases.Add(purchase);
+        _context.Compras.Add(purchase);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var result = await _context.Purchases
-            .Include(p => p.CreditCard)
+        var result = await _context.Compras
+            .Include(p => p.CartaoCredito)
             .FirstAsync(p => p.Id == purchase.Id, cancellationToken);
 
-        return _mapper.Map<PurchaseDto>(result);
+        return _mapper.Map<CompraDto>(result);
     }
 }
 
-public class UpdatePurchaseCommandHandler : IRequestHandler<UpdatePurchaseCommand, PurchaseDto>
+public class AtualizarCompraCommandHandler : IRequestHandler<AtualizarCompraCommand, CompraDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public UpdatePurchaseCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public AtualizarCompraCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<PurchaseDto> Handle(UpdatePurchaseCommand request, CancellationToken cancellationToken)
+    public async Task<CompraDto> Handle(AtualizarCompraCommand request, CancellationToken cancellationToken)
     {
-        var purchase = await _context.Purchases
-            .Include(p => p.CreditCard)
+        var purchase = await _context.Compras
+            .Include(p => p.CartaoCredito)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
         
         if (purchase == null)
             throw new KeyNotFoundException($"Compra com ID {request.Id} não encontrada.");
 
-        purchase.Description = request.Description;
-        purchase.Category = request.Category;
-        purchase.Date = request.Date;
-        purchase.TotalAmount = request.TotalAmount;
-        purchase.Installments = request.Installments;
+        purchase.Descricao = request.Descricao;
+        purchase.Categoria = request.Categoria;
+        purchase.Data = request.Data;
+        purchase.ValorTotal = request.ValorTotal;
+        purchase.Parcelas = request.Parcelas;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<PurchaseDto>(purchase);
+        return _mapper.Map<CompraDto>(purchase);
     }
 }
 
-public class DeletePurchaseCommandHandler : IRequestHandler<DeletePurchaseCommand, bool>
+public class ExcluirCompraCommandHandler : IRequestHandler<ExcluirCompraCommand, bool>
 {
     private readonly ApplicationDbContext _context;
 
-    public DeletePurchaseCommandHandler(ApplicationDbContext context)
+    public ExcluirCompraCommandHandler(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    public async Task<bool> Handle(DeletePurchaseCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(ExcluirCompraCommand request, CancellationToken cancellationToken)
     {
-        var purchase = await _context.Purchases.FindAsync(new object[] { request.Id }, cancellationToken);
+        var purchase = await _context.Compras.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (purchase == null)
             return false;
 
-        _context.Purchases.Remove(purchase);
+        _context.Compras.Remove(purchase);
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 }
 
-public class GetAllPurchasesQueryHandler : IRequestHandler<GetAllPurchasesQuery, List<PurchaseDto>>
+public class ObterTodasComprasQueryHandler : IRequestHandler<ObterTodasComprasQuery, List<CompraDto>>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetAllPurchasesQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterTodasComprasQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<List<PurchaseDto>> Handle(GetAllPurchasesQuery request, CancellationToken cancellationToken)
+    public async Task<List<CompraDto>> Handle(ObterTodasComprasQuery request, CancellationToken cancellationToken)
     {
-        var purchases = await _context.Purchases
-            .Include(p => p.CreditCard)
-            .OrderByDescending(p => p.Date)
+        var purchases = await _context.Compras
+            .Include(p => p.CartaoCredito)
+            .OrderByDescending(p => p.Data)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<List<PurchaseDto>>(purchases);
+        return _mapper.Map<List<CompraDto>>(purchases);
     }
 }
 
-public class GetPurchaseByIdQueryHandler : IRequestHandler<GetPurchaseByIdQuery, PurchaseDto?>
+public class ObterCompraPorIdQueryHandler : IRequestHandler<ObterCompraPorIdQuery, CompraDto?>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetPurchaseByIdQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterCompraPorIdQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<PurchaseDto?> Handle(GetPurchaseByIdQuery request, CancellationToken cancellationToken)
+    public async Task<CompraDto?> Handle(ObterCompraPorIdQuery request, CancellationToken cancellationToken)
     {
-        var purchase = await _context.Purchases
-            .Include(p => p.CreditCard)
+        var purchase = await _context.Compras
+            .Include(p => p.CartaoCredito)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
-        return purchase == null ? null : _mapper.Map<PurchaseDto>(purchase);
+        return purchase == null ? null : _mapper.Map<CompraDto>(purchase);
     }
 }
 
-public class GetPurchasesByCreditCardQueryHandler : IRequestHandler<GetPurchasesByCreditCardQuery, List<PurchaseDto>>
+public class ObterComprasPorCartaoCreditoQueryHandler : IRequestHandler<ObterComprasPorCartaoCreditoQuery, List<CompraDto>>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetPurchasesByCreditCardQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterComprasPorCartaoCreditoQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<List<PurchaseDto>> Handle(GetPurchasesByCreditCardQuery request, CancellationToken cancellationToken)
+    public async Task<List<CompraDto>> Handle(ObterComprasPorCartaoCreditoQuery request, CancellationToken cancellationToken)
     {
-        var purchases = await _context.Purchases
-            .Include(p => p.CreditCard)
-            .Where(p => p.CreditCardId == request.CreditCardId)
-            .OrderByDescending(p => p.Date)
+        var purchases = await _context.Compras
+            .Include(p => p.CartaoCredito)
+            .Where(p => p.CartaoCreditoId == request.CartaoCreditoId)
+            .OrderByDescending(p => p.Data)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<List<PurchaseDto>>(purchases);
+        return _mapper.Map<List<CompraDto>>(purchases);
     }
 }

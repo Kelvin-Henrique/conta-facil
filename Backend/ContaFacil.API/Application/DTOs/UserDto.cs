@@ -1,25 +1,25 @@
 namespace ContaFacil.API.Application.DTOs
 {
-    public class UserDto
+    public class UsuarioDto
     {
         public int Id { get; set; }
         public string FirebaseUid { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public DateTime? LastLoginAt { get; set; }
-        public bool IsActive { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public DateTime CriadoEm { get; set; }
+        public DateTime? UltimoLoginEm { get; set; }
+        public bool Ativo { get; set; }
     }
 
-    public class CreateUserDto
+    public class CriarUsuarioDto
     {
         public string FirebaseUid { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string Nome { get; set; } = string.Empty;
     }
 
-    public class UpdateUserDto
+    public class AtualizarUsuarioDto
     {
-        public string Name { get; set; } = string.Empty;
+        public string Nome { get; set; } = string.Empty;
     }
 }

@@ -8,69 +8,69 @@ namespace ContaFacil.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AccountTransactionsController : ControllerBase
+public class TransacoesContaController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public AccountTransactionsController(IMediator mediator)
+    public TransacoesContaController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<AccountTransactionDto>>> GetAll()
+    public async Task<ActionResult<List<TransacaoContaDto>>> ObterTodas()
     {
-        var result = await _mediator.Send(new GetAllAccountTransactionsQuery());
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterTodasTransacoesContaQuery());
+        return Ok(resultado);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<AccountTransactionDto>> GetById(Guid id)
+    public async Task<ActionResult<TransacaoContaDto>> ObterPorId(Guid id)
     {
-        var result = await _mediator.Send(new GetAccountTransactionByIdQuery(id));
+        var resultado = await _mediator.Send(new ObterTransacaoContaPorIdQuery(id));
         
-        if (result == null)
+        if (resultado == null)
             return NotFound(new { message = "Transação não encontrada" });
 
-        return Ok(result);
+        return Ok(resultado);
     }
 
     [HttpGet("by-account/{bankAccountId}")]
-    public async Task<ActionResult<List<AccountTransactionDto>>> GetByBankAccount(Guid bankAccountId)
+    public async Task<ActionResult<List<TransacaoContaDto>>> ObterPorContaBancaria(Guid bankAccountId)
     {
-        var result = await _mediator.Send(new GetAccountTransactionsByBankAccountQuery(bankAccountId));
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterTransacoesContaPorContaBancariaQuery(bankAccountId));
+        return Ok(resultado);
     }
 
     [HttpPost]
-    public async Task<ActionResult<AccountTransactionDto>> Create([FromBody] CreateAccountTransactionDto dto)
+    public async Task<ActionResult<TransacaoContaDto>> Criar([FromBody] CriarTransacaoContaDto dto)
     {
-        var command = new CreateAccountTransactionCommand(
-            dto.BankAccountId,
-            dto.Description,
-            dto.Category,
-            dto.Date,
-            dto.Amount
+        var comando = new CriarTransacaoContaCommand(
+            dto.ContaBancariaId,
+            dto.Descricao,
+            dto.Categoria,
+            dto.Data,
+            dto.Valor
         );
-        var result = await _mediator.Send(command);
+        var resultado = await _mediator.Send(comando);
         
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(ObterPorId), new { id = resultado.Id }, resultado);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<AccountTransactionDto>> Update(Guid id, [FromBody] UpdateAccountTransactionDto dto)
+    public async Task<ActionResult<TransacaoContaDto>> Atualizar(Guid id, [FromBody] AtualizarTransacaoContaDto dto)
     {
         try
         {
-            var command = new UpdateAccountTransactionCommand(
+            var comando = new AtualizarTransacaoContaCommand(
                 id,
-                dto.Description,
-                dto.Category,
-                dto.Date,
-                dto.Amount
+                dto.Descricao,
+                dto.Categoria,
+                dto.Data,
+                dto.Valor
             );
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var resultado = await _mediator.Send(comando);
+            return Ok(resultado);
         }
         catch (KeyNotFoundException ex)
         {
@@ -79,11 +79,11 @@ public class AccountTransactionsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Excluir(Guid id)
     {
-        var result = await _mediator.Send(new DeleteAccountTransactionCommand(id));
+        var resultado = await _mediator.Send(new ExcluirTransacaoContaCommand(id));
         
-        if (!result)
+        if (!resultado)
             return NotFound(new { message = "Transação não encontrada" });
 
         return NoContent();

@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { BankAccount, CreditCard, Purchase, FixedBill } from '../types';
+import { ContaBancaria, CartaoCredito, Compra, ContaFixa } from '../types';
 import { formatCurrency, calculateBills } from '../utils/finance';
 import { ICONS } from '../constants';
 // import { getFinancialAdvice } from '../services/geminiService'; // Desabilitado temporariamente
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface DashboardProps {
-  accounts: BankAccount[];
-  cards: CreditCard[];
-  purchases: Purchase[];
-  fixedBills: FixedBill[];
+  accounts: ContaBancaria[];
+  cards: CartaoCredito[];
+  purchases: Compra[];
+  fixedBills: ContaFixa[];
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixedBills }) => {
@@ -26,7 +26,7 @@ const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixed
   }, [accounts, cards, purchases]);
   */
 
-  const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
+  const totalBalance = accounts.reduce((acc, curr) => acc + curr.saldo, 0);
   
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -34,8 +34,8 @@ const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixed
 
   // Pendências de Contas Fixas
   const pendingFixedBills = fixedBills
-    .filter(b => b.month === currentMonth && b.year === currentYear && !b.isPaid)
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .filter(b => b.mes === currentMonth && b.ano === currentYear && !b.pago)
+    .reduce((acc, curr) => acc + curr.valor, 0);
 
   // Consolidar todas as faturas de todos os cartões
   const allBillsMap: { [key: string]: { total: number; name: string; sortKey: number } } = {};
@@ -43,12 +43,12 @@ const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixed
   cards.forEach(card => {
     const cardBills = calculateBills(purchases, card);
     cardBills.forEach(bill => {
-      const key = `${bill.year}-${bill.month}`;
+      const key = `${bill.ano}-${bill.mes}`;
       if (!allBillsMap[key]) {
         allBillsMap[key] = {
           total: 0,
-          name: new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(bill.year, bill.month)),
-          sortKey: bill.year * 12 + bill.month
+          name: new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(bill.ano, bill.mes)),
+          sortKey: bill.ano * 12 + bill.mes
         };
       }
       allBillsMap[key].total += bill.total;
@@ -157,13 +157,13 @@ const Dashboard: React.FC<DashboardProps> = ({ accounts, cards, purchases, fixed
                       <ICONS.CreditCard className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-800">{p.description}</p>
-                      <p className="text-xs text-slate-500">{new Date(p.date + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
+                      <p className="font-semibold text-slate-800">{p.descricao}</p>
+                      <p className="text-xs text-slate-500">{new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-slate-800">{formatCurrency(p.totalAmount)}</p>
-                    <p className="text-xs text-indigo-500">{p.installments}x de {formatCurrency(p.totalAmount/p.installments)}</p>
+                    <p className="font-bold text-slate-800">{formatCurrency(p.valorTotal)}</p>
+                    <p className="text-xs text-indigo-500">{p.parcelas}x de {formatCurrency(p.valorTotal/p.parcelas)}</p>
                   </div>
                 </div>
               ))

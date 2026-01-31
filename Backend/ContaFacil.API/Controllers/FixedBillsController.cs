@@ -8,74 +8,74 @@ namespace ContaFacil.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class FixedBillsController : ControllerBase
+public class ContasFixasController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public FixedBillsController(IMediator mediator)
+    public ContasFixasController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<FixedBillDto>>> GetAll()
+    public async Task<ActionResult<List<ContaFixaDto>>> ObterTodas()
     {
-        var result = await _mediator.Send(new GetAllFixedBillsQuery());
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterTodasContasFixasQuery());
+        return Ok(resultado);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<FixedBillDto>> GetById(Guid id)
+    public async Task<ActionResult<ContaFixaDto>> ObterPorId(Guid id)
     {
-        var result = await _mediator.Send(new GetFixedBillByIdQuery(id));
+        var resultado = await _mediator.Send(new ObterContaFixaPorIdQuery(id));
         
-        if (result == null)
+        if (resultado == null)
             return NotFound(new { message = "Conta fixa não encontrada" });
 
-        return Ok(result);
+        return Ok(resultado);
     }
 
     [HttpGet("by-month")]
-    public async Task<ActionResult<List<FixedBillDto>>> GetByMonthYear([FromQuery] int month, [FromQuery] int year)
+    public async Task<ActionResult<List<ContaFixaDto>>> ObterPorMesAno([FromQuery] int month, [FromQuery] int year)
     {
-        var result = await _mediator.Send(new GetFixedBillsByMonthYearQuery(month, year));
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterContasFixasPorMesAnoQuery(month, year));
+        return Ok(resultado);
     }
 
     [HttpPost]
-    public async Task<ActionResult<FixedBillDto>> Create([FromBody] CreateFixedBillDto dto)
+    public async Task<ActionResult<ContaFixaDto>> Criar([FromBody] CriarContaFixaDto dto)
     {
-        var command = new CreateFixedBillCommand(
-            dto.Name,
-            dto.Category,
-            dto.Amount,
-            dto.DueDay,
-            dto.Month,
-            dto.Year,
-            dto.IsPaid,
-            dto.IsRecurring
+        var comando = new CriarContaFixaCommand(
+            dto.Nome,
+            dto.Categoria,
+            dto.Valor,
+            dto.DiaVencimento,
+            dto.Mes,
+            dto.Ano,
+            dto.Pago,
+            dto.Recorrente
         );
-        var result = await _mediator.Send(command);
+        var resultado = await _mediator.Send(comando);
         
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(ObterPorId), new { id = resultado.Id }, resultado);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<FixedBillDto>> Update(Guid id, [FromBody] UpdateFixedBillDto dto)
+    public async Task<ActionResult<ContaFixaDto>> Atualizar(Guid id, [FromBody] AtualizarContaFixaDto dto)
     {
         try
         {
-            var command = new UpdateFixedBillCommand(
+            var comando = new AtualizarContaFixaCommand(
                 id,
-                dto.Name,
-                dto.Category,
-                dto.Amount,
-                dto.DueDay,
-                dto.IsPaid,
-                dto.IsRecurring
+                dto.Nome,
+                dto.Categoria,
+                dto.Valor,
+                dto.DiaVencimento,
+                dto.Pago,
+                dto.Recorrente
             );
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var resultado = await _mediator.Send(comando);
+            return Ok(resultado);
         }
         catch (KeyNotFoundException ex)
         {
@@ -84,12 +84,12 @@ public class FixedBillsController : ControllerBase
     }
 
     [HttpPatch("{id}/toggle-paid")]
-    public async Task<ActionResult<FixedBillDto>> TogglePaid(Guid id)
+    public async Task<ActionResult<ContaFixaDto>> AlternarPago(Guid id)
     {
         try
         {
-            var result = await _mediator.Send(new ToggleFixedBillPaidCommand(id));
-            return Ok(result);
+            var resultado = await _mediator.Send(new AlternarContaFixaPagaCommand(id));
+            return Ok(resultado);
         }
         catch (KeyNotFoundException ex)
         {
@@ -98,11 +98,11 @@ public class FixedBillsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Excluir(Guid id)
     {
-        var result = await _mediator.Send(new DeleteFixedBillCommand(id));
+        var resultado = await _mediator.Send(new ExcluirContaFixaCommand(id));
         
-        if (!result)
+        if (!resultado)
             return NotFound(new { message = "Conta fixa não encontrada" });
 
         return NoContent();

@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { FixedBill } from '../types';
+import { ContaFixa } from '../types';
 import { ICONS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/finance';
-import { fixedBillsApi } from '../services/apiService';
+import { contasFixasApi } from '../services/apiService';
 
 interface FixedBillsManagerProps {
-  bills: FixedBill[];
-  setBills: React.Dispatch<React.SetStateAction<FixedBill[]>>;
+  bills: ContaFixa[];
+  setBills: React.Dispatch<React.SetStateAction<ContaFixa[]>>;
 }
 
 const MONTHS = [
@@ -30,17 +30,17 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
   });
 
   const [formData, setFormData] = useState({
-    name: '',
-    category: CATEGORIES[0],
-    amount: '',
-    dueDay: now.getDate().toString(),
-    isRecurring: true,
-    isPaid: false
+    nome: '',
+    categoria: CATEGORIES[0],
+    valor: '',
+    diaVencimento: now.getDate().toString(),
+    recorrente: true,
+    pago: false
   });
 
   // Automatic Recurring Logic
   useEffect(() => {
-    const currentMonthBills = bills.filter(b => b.month === viewingMonth && b.year === viewingYear);
+    const currentMonthBills = bills.filter(b => b.mes === viewingMonth && b.ano === viewingYear);
     
     if (currentMonthBills.length === 0) {
       let prevMonth = viewingMonth - 1;
@@ -51,24 +51,24 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
       }
 
       const recurringFromPrev = bills.filter(b => 
-        b.month === prevMonth && 
-        b.year === prevYear && 
-        b.isRecurring
+        b.mes === prevMonth && 
+        b.ano === prevYear && 
+        b.recorrente
       );
 
       if (recurringFromPrev.length > 0) {
         const createRecurringBills = async () => {
           try {
             const newBillsPromises = recurringFromPrev.map(b => 
-              fixedBillsApi.create({
-                name: b.name,
-                category: b.category,
-                amount: b.amount,
-                dueDay: b.dueDay,
-                month: viewingMonth,
-                year: viewingYear,
-                isPaid: false,
-                isRecurring: b.isRecurring
+              contasFixasApi.create({
+                nome: b.nome,
+                categoria: b.categoria,
+                valor: b.valor,
+                diaVencimento: b.diaVencimento,
+                mes: viewingMonth,
+                ano: viewingYear,
+                pago: false,
+                recorrente: b.recorrente
               })
             );
             const createdBills = await Promise.all(newBillsPromises);
@@ -98,64 +98,64 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
   };
 
   const currentBills = bills
-    .filter(b => b.month === viewingMonth && b.year === viewingYear)
-    .sort((a, b) => a.dueDay - b.dueDay);
+    .filter(b => b.mes === viewingMonth && b.ano === viewingYear)
+    .sort((a, b) => a.diaVencimento - b.diaVencimento);
 
-  const totalPaid = currentBills.filter(b => b.isPaid).reduce((acc, curr) => acc + curr.amount, 0);
-  const totalPending = currentBills.filter(b => !b.isPaid).reduce((acc, curr) => acc + curr.amount, 0);
+  const totalPaid = currentBills.filter(b => b.pago).reduce((acc, curr) => acc + curr.valor, 0);
+  const totalPending = currentBills.filter(b => !b.pago).reduce((acc, curr) => acc + curr.valor, 0);
 
   const openAddModal = () => {
     setFormData({
-      name: '',
-      category: CATEGORIES[0],
-      amount: '',
-      dueDay: now.getDate().toString(),
-      isRecurring: true,
-      isPaid: false
+      nome: '',
+      categoria: CATEGORIES[0],
+      valor: '',
+      diaVencimento: now.getDate().toString(),
+      recorrente: true,
+      pago: false
     });
     setModalConfig({ isOpen: true, mode: 'add' });
   };
 
-  const openEditModal = (bill: FixedBill) => {
+  const openEditModal = (bill: ContaFixa) => {
     setFormData({
-      name: bill.name,
-      category: bill.category,
-      amount: formatInputToCurrency((bill.amount * 100).toFixed(0)),
-      dueDay: bill.dueDay.toString(),
-      isRecurring: bill.isRecurring,
-      isPaid: bill.isPaid
+      nome: bill.nome,
+      categoria: bill.categoria,
+      valor: formatInputToCurrency((bill.valor * 100).toFixed(0)),
+      diaVencimento: bill.diaVencimento.toString(),
+      recorrente: bill.recorrente,
+      pago: bill.pago
     });
     setModalConfig({ isOpen: true, mode: 'edit', billId: bill.id });
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numAmount = parseCurrencyToNumber(formData.amount);
-    const numDueDay = parseInt(formData.dueDay) || 1;
-    if (!formData.name || numAmount <= 0) return;
+    const numAmount = parseCurrencyToNumber(formData.valor);
+    const numDueDay = parseInt(formData.diaVencimento) || 1;
+    if (!formData.nome || numAmount <= 0) return;
 
     try {
       if (modalConfig.mode === 'add') {
         const newBill = {
-          name: formData.name,
-          category: formData.category,
-          amount: numAmount,
-          dueDay: numDueDay,
-          month: viewingMonth,
-          year: viewingYear,
-          isPaid: formData.isPaid,
-          isRecurring: formData.isRecurring
+          nome: formData.nome,
+          categoria: formData.categoria,
+          valor: numAmount,
+          diaVencimento: numDueDay,
+          mes: viewingMonth,
+          ano: viewingYear,
+          pago: formData.pago,
+          recorrente: formData.recorrente
         };
-        const created = await fixedBillsApi.create(newBill);
+        const created = await contasFixasApi.create(newBill);
         setBills(prev => [...prev, created]);
       } else {
-        const updated = await fixedBillsApi.update(modalConfig.billId!, {
-          name: formData.name,
-          category: formData.category,
-          amount: numAmount,
-          dueDay: numDueDay,
-          isRecurring: formData.isRecurring,
-          isPaid: formData.isPaid
+        const updated = await contasFixasApi.update(modalConfig.billId!, {
+          nome: formData.nome,
+          categoria: formData.categoria,
+          valor: numAmount,
+          diaVencimento: numDueDay,
+          recorrente: formData.recorrente,
+          pago: formData.pago
         });
         setBills(prev => prev.map(b => b.id === modalConfig.billId ? updated : b));
       }
@@ -173,7 +173,7 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
       const bill = bills.find(b => b.id === id);
       if (!bill) return;
       
-      const updated = await fixedBillsApi.update(id, { isPaid: !bill.isPaid });
+      const updated = await contasFixasApi.update(id, { pago: !bill.pago });
       setBills(prev => prev.map(b => b.id === id ? updated : b));
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
@@ -185,7 +185,7 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
     if (!confirm("Excluir esta conta?")) return;
     
     try {
-      await fixedBillsApi.delete(id);
+      await contasFixasApi.delete(id);
       setBills(prev => prev.filter(b => b.id !== id));
       setModalConfig({ ...modalConfig, isOpen: false });
     } catch (error) {
@@ -269,9 +269,9 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                 <div className="flex items-center gap-5">
                   <button 
                     onClick={(e) => togglePaid(bill.id, e)}
-                    title={bill.isPaid ? "Marcar como pendente" : "Marcar como pago"}
+                    title={bill.pago ? "Marcar como pendente" : "Marcar como pago"}
                     className={`p-3 rounded-2xl transition-all border-2 ${
-                      bill.isPaid 
+                      bill.pago 
                         ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100 scale-110' 
                         : 'bg-white border-slate-200 text-slate-200 hover:border-indigo-300'
                     }`}
@@ -280,21 +280,21 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                   </button>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-slate-400 w-6 text-center">Dia {bill.dueDay}</span>
-                      <h4 className={`font-bold text-lg transition-all ${bill.isPaid ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
-                        {bill.name}
+                      <span className="text-xs font-black text-slate-400 w-6 text-center">Dia {bill.diaVencimento}</span>
+                      <h4 className={`font-bold text-lg transition-all ${bill.pago ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                        {bill.nome}
                       </h4>
-                      {bill.isRecurring && (
+                      {bill.recorrente && (
                         <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-tighter">Recorrente</span>
                       )}
                     </div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{bill.category}</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{bill.categoria}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-8">
-                  <span className={`text-xl font-black ${bill.isPaid ? 'text-slate-400' : 'text-slate-800'}`}>
-                    {formatCurrency(bill.amount)}
+                  <span className={`text-xl font-black ${bill.pago ? 'text-slate-400' : 'text-slate-800'}`}>
+                    {formatCurrency(bill.valor)}
                   </span>
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                     <button 
@@ -340,8 +340,8 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                   required
                   autoFocus
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   placeholder="Ex: Aluguel, Internet, Luz..."
                 />
@@ -351,8 +351,8 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Categoria</label>
                   <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    value={formData.categoria}
+                    onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   >
                     {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -365,8 +365,8 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                     min="1"
                     max="31"
                     required
-                    value={formData.dueDay}
-                    onChange={(e) => setFormData({ ...formData, dueDay: e.target.value })}
+                    value={formData.diaVencimento}
+                    onChange={(e) => setFormData({ ...formData, diaVencimento: e.target.value })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   />
                 </div>
@@ -380,8 +380,8 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                     type="text"
                     inputMode="numeric"
                     required
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: formatInputToCurrency(e.target.value) })}
+                    value={formData.valor}
+                    onChange={(e) => setFormData({ ...formData, valor: formatInputToCurrency(e.target.value) })}
                     className="w-full p-4 pl-11 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                     placeholder="0,00"
                   />
@@ -393,8 +393,8 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                   <input
                     type="checkbox"
                     id="recurring"
-                    checked={formData.isRecurring}
-                    onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+                    checked={formData.recorrente}
+                    onChange={(e) => setFormData({ ...formData, recorrente: e.target.checked })}
                     className="w-5 h-5 accent-indigo-600 rounded"
                   />
                   <label htmlFor="recurring" className="text-sm font-bold text-indigo-700 cursor-pointer">
@@ -403,17 +403,17 @@ const FixedBillsManager: React.FC<FixedBillsManagerProps> = ({ bills, setBills }
                 </div>
 
                 <div className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${
-                  formData.isPaid ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600'
+                  formData.pago ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600'
                 }`}>
                   <input
                     type="checkbox"
                     id="isPaid"
-                    checked={formData.isPaid}
-                    onChange={(e) => setFormData({ ...formData, isPaid: e.target.checked })}
+                    checked={formData.pago}
+                    onChange={(e) => setFormData({ ...formData, pago: e.target.checked })}
                     className="w-5 h-5 accent-emerald-600 rounded"
                   />
                   <label htmlFor="isPaid" className="text-sm font-bold cursor-pointer flex items-center gap-2">
-                    {formData.isPaid ? (
+                    {formData.pago ? (
                       <>
                         <ICONS.CheckCircle className="w-4 h-4" />
                         Esta conta já foi PAGA

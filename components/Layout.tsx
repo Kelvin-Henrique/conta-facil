@@ -33,11 +33,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
         <div className="px-6 py-2">
           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold text-xs">
-              {user?.name ? user.name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+              {user?.nome ? user.nome.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
             </div>
             <div className="overflow-hidden">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none">Usuário</p>
-              <p className="text-xs font-bold text-slate-700 truncate">{user?.name || user?.email || 'Usuário'}</p>
+              <p className="text-xs font-bold text-slate-700 truncate">{user?.nome || user?.email || 'Usuário'}</p>
             </div>
           </div>
         </div>

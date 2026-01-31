@@ -1,18 +1,18 @@
 namespace ContaFacil.API.Domain.Entities;
 
-public class AccountTransaction
+public class TransacaoConta
 {
     public Guid Id { get; set; }
-    public int UserId { get; set; }
-    public Guid BankAccountId { get; set; }
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal Amount { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public int UsuarioId { get; set; }
+    public Guid ContaBancariaId { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal Valor { get; set; }
+    public DateTime CriadoEm { get; set; }
+    public DateTime? AtualizadoEm { get; set; }
     
     // Navigation Properties
-    public User User { get; set; } = null!;
-    public BankAccount BankAccount { get; set; } = null!;
+    public Usuario Usuario { get; set; } = null!;
+    public ContaBancaria ContaBancaria { get; set; } = null!;
 }

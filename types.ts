@@ -1,72 +1,72 @@
 
-export interface User {
+export interface Usuario {
   id: number;
   firebaseUid: string;
   email: string;
-  name: string;
-  createdAt: string;
-  lastLoginAt?: string;
-  isActive: boolean;
+  nome: string;
+  criadoEm: string;
+  ultimoLoginEm?: string;
+  ativo: boolean;
 }
 
-export interface BankAccount {
+export interface ContaBancaria {
   id: string;
-  name: string;
-  bankName: string;
-  balance: number;
+  nome: string;
+  nomeBanco: string;
+  saldo: number;
 }
 
-export interface CreditCard {
+export interface CartaoCredito {
   id: string;
-  name: string;
-  dueDay: number;
-  closingDay: number;
+  nome: string;
+  diaVencimento: number;
+  diaFechamento: number;
 }
 
-export interface Purchase {
+export interface Compra {
   id: string;
-  cardId: string;
-  description: string;
-  category: string;
-  date: string; // ISO format
-  totalAmount: number;
-  installments: number;
+  cartaoCreditoId: string;
+  descricao: string;
+  categoria: string;
+  data: string; // ISO format
+  valorTotal: number;
+  parcelas: number;
 }
 
-export interface AccountTransaction {
+export interface TransacaoConta {
   id: string;
-  accountId: string;
-  description: string;
-  category: string;
-  date: string;
-  amount: number;
+  contaBancariaId: string;
+  descricao: string;
+  categoria: string;
+  data: string;
+  valor: number;
 }
 
-export interface FixedBill {
+export interface ContaFixa {
   id: string;
-  name: string;
-  category: string;
-  amount: number;
-  dueDay: number;
-  month: number;
-  year: number;
-  isPaid: boolean;
-  isRecurring: boolean;
+  nome: string;
+  categoria: string;
+  valor: number;
+  diaVencimento: number;
+  mes: number;
+  ano: number;
+  pago: boolean;
+  recorrente: boolean;
 }
 
-export interface BillItem {
-  purchaseId: string;
-  description: string;
-  category: string;
-  installmentNumber: number;
-  totalInstallments: number;
-  amount: number;
-  date: string;
+export interface ItemFatura {
+  compraId: string;
+  descricao: string;
+  categoria: string;
+  numeroParcela: number;
+  totalParcelas: number;
+  valor: number;
+  data: string;
 }
 
-export interface MonthlyBill {
-  month: number;
-  year: number;
+export interface FaturaMensal {
+  mes: number;
+  ano: number;
   total: number;
-  items: BillItem[];
+  itens: ItemFatura[];
 }

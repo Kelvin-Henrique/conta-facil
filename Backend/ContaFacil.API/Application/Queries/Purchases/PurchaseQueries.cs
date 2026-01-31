@@ -3,8 +3,8 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Queries.Purchases;
 
-public record GetAllPurchasesQuery : IRequest<List<PurchaseDto>>;
+public record ObterTodasComprasQuery : IRequest<List<CompraDto>>;
 
-public record GetPurchaseByIdQuery(Guid Id) : IRequest<PurchaseDto?>;
+public record ObterCompraPorIdQuery(Guid Id) : IRequest<CompraDto?>;
 
-public record GetPurchasesByCreditCardQuery(Guid CreditCardId) : IRequest<List<PurchaseDto>>;
+public record ObterComprasPorCartaoCreditoQuery(Guid CartaoCreditoId) : IRequest<List<CompraDto>>;

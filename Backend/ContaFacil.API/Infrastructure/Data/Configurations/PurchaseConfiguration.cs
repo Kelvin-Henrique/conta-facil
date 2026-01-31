@@ -4,42 +4,42 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ContaFacil.API.Infrastructure.Data.Configurations;
 
-public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
+public class PurchaseConfiguration : IEntityTypeConfiguration<Compra>
 {
-    public void Configure(EntityTypeBuilder<Purchase> builder)
+    public void Configure(EntityTypeBuilder<Compra> builder)
     {
         builder.ToTable("Purchases");
         
         builder.HasKey(x => x.Id);
         
-        builder.Property(x => x.Description)
+        builder.Property(x => x.Descricao)
             .IsRequired()
             .HasMaxLength(200);
             
-        builder.Property(x => x.Category)
+        builder.Property(x => x.Categoria)
             .IsRequired()
             .HasMaxLength(50);
             
-        builder.Property(x => x.Date)
+        builder.Property(x => x.Data)
             .IsRequired();
             
-        builder.Property(x => x.TotalAmount)
+        builder.Property(x => x.ValorTotal)
             .HasPrecision(18, 2);
             
-        builder.Property(x => x.Installments)
+        builder.Property(x => x.Parcelas)
             .IsRequired();
             
-        builder.Property(x => x.CreatedAt)
+        builder.Property(x => x.CriadoEm)
             .IsRequired();
             
-        builder.Property(x => x.UpdatedAt);
+        builder.Property(x => x.AtualizadoEm);
             
-        builder.HasOne(x => x.CreditCard)
-            .WithMany(x => x.Purchases)
-            .HasForeignKey(x => x.CreditCardId)
+        builder.HasOne(x => x.CartaoCredito)
+            .WithMany(x => x.Compras)
+            .HasForeignKey(x => x.CartaoCreditoId)
             .OnDelete(DeleteBehavior.Cascade);
             
-        builder.HasIndex(x => x.CreditCardId);
-        builder.HasIndex(x => x.Date);
+        builder.HasIndex(x => x.CartaoCreditoId);
+        builder.HasIndex(x => x.Data);
     }
 }

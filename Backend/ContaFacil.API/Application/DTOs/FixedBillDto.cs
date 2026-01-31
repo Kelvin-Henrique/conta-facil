@@ -1,36 +1,36 @@
 namespace ContaFacil.API.Application.DTOs;
 
-public class FixedBillDto
+public class ContaFixaDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public int DueDay { get; set; }
-    public int Month { get; set; }
-    public int Year { get; set; }
-    public bool IsPaid { get; set; }
-    public bool IsRecurring { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public decimal Valor { get; set; }
+    public int DiaVencimento { get; set; }
+    public int Mes { get; set; }
+    public int Ano { get; set; }
+    public bool Pago { get; set; }
+    public bool Recorrente { get; set; }
 }
 
-public class CreateFixedBillDto
+public class CriarContaFixaDto
 {
-    public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public int DueDay { get; set; }
-    public int Month { get; set; }
-    public int Year { get; set; }
-    public bool IsPaid { get; set; }
-    public bool IsRecurring { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public decimal Valor { get; set; }
+    public int DiaVencimento { get; set; }
+    public int Mes { get; set; }
+    public int Ano { get; set; }
+    public bool Pago { get; set; }
+    public bool Recorrente { get; set; }
 }
 
-public class UpdateFixedBillDto
+public class AtualizarContaFixaDto
 {
-    public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public int DueDay { get; set; }
-    public bool IsPaid { get; set; }
-    public bool IsRecurring { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public decimal Valor { get; set; }
+    public int DiaVencimento { get; set; }
+    public bool Pago { get; set; }
+    public bool Recorrente { get; set; }
 }

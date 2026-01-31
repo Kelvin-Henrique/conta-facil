@@ -10,18 +10,18 @@ import { auth } from '../config/firebase';
 
 const API_BASE_URL = 'http://localhost:5005/api';
 
-export interface UserData {
+export interface DadosUsuario {
   id: number;
   firebaseUid: string;
   email: string;
-  name: string;
-  createdAt: string;
-  lastLoginAt?: string;
-  isActive: boolean;
+  nome: string;
+  criadoEm: string;
+  ultimoLoginEm?: string;
+  ativo: boolean;
 }
 
 // Registrar novo usuário
-export const registerUser = async (email: string, password: string, name: string): Promise<UserData> => {
+export const registerUser = async (email: string, password: string, name: string): Promise<DadosUsuario> => {
   try {
     // 1. Criar usuário no Firebase
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -31,13 +31,13 @@ export const registerUser = async (email: string, password: string, name: string
     await updateProfile(firebaseUser, { displayName: name });
 
     // 3. Criar usuário no backend
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const response = await fetch(`${API_BASE_URL}/usuarios`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         firebaseUid: firebaseUser.uid,
         email: firebaseUser.email,
-        name: name
+        nome: name
       })
     });
 
@@ -45,7 +45,7 @@ export const registerUser = async (email: string, password: string, name: string
       throw new Error('Erro ao criar usuário no backend');
     }
 
-    const userData: UserData = await response.json();
+    const userData: DadosUsuario = await response.json();
     return userData;
   } catch (error: any) {
     console.error('Erro no registro:', error);
@@ -54,23 +54,23 @@ export const registerUser = async (email: string, password: string, name: string
 };
 
 // Login de usuário
-export const loginUser = async (email: string, password: string): Promise<UserData> => {
+export const loginUser = async (email: string, password: string): Promise<DadosUsuario> => {
   try {
     // 1. Fazer login no Firebase
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const firebaseUser = userCredential.user;
 
     // 2. Buscar dados do usuário no backend
-    const response = await fetch(`${API_BASE_URL}/users/firebase/${firebaseUser.uid}`);
+    const response = await fetch(`${API_BASE_URL}/usuarios/firebase/${firebaseUser.uid}`);
     
     if (!response.ok) {
       throw new Error('Usuário não encontrado no sistema');
     }
 
-    const userData: UserData = await response.json();
+    const userData: DadosUsuario = await response.json();
 
     // 3. Atualizar último login
-    await fetch(`${API_BASE_URL}/users/login/${firebaseUser.uid}`, { method: 'POST' });
+    await fetch(`${API_BASE_URL}/usuarios/login/${firebaseUser.uid}`, { method: 'POST' });
 
     return userData;
   } catch (error: any) {

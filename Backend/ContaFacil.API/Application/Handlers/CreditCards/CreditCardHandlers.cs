@@ -9,130 +9,130 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContaFacil.API.Application.Handlers.CreditCards;
 
-public class CreateCreditCardCommandHandler : IRequestHandler<CreateCreditCardCommand, CreditCardDto>
+public class CriarCartaoCreditoCommandHandler : IRequestHandler<CriarCartaoCreditoCommand, CartaoCreditoDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public CreateCreditCardCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public CriarCartaoCreditoCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<CreditCardDto> Handle(CreateCreditCardCommand request, CancellationToken cancellationToken)
+    public async Task<CartaoCreditoDto> Handle(CriarCartaoCreditoCommand request, CancellationToken cancellationToken)
     {
         // TODO: Pegar UserId do contexto de autenticação
         // Por enquanto, usar o primeiro usuário do banco
-        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        var user = await _context.Usuarios.FirstOrDefaultAsync(cancellationToken);
         if (user == null)
         {
             throw new Exception("Nenhum usuário encontrado no sistema");
         }
 
-        var card = new CreditCard
+        var card = new CartaoCredito
         {
             Id = Guid.NewGuid(),
-            Name = request.Name,
-            DueDay = request.DueDay,
-            ClosingDay = request.ClosingDay,
-            UserId = user.Id
+            Nome = request.Nome,
+            DiaVencimento = request.DiaVencimento,
+            DiaFechamento = request.DiaFechamento,
+            UsuarioId = user.Id
         };
 
-        _context.CreditCards.Add(card);
+        _context.CartoesCredito.Add(card);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<CreditCardDto>(card);
+        return _mapper.Map<CartaoCreditoDto>(card);
     }
 }
 
-public class UpdateCreditCardCommandHandler : IRequestHandler<UpdateCreditCardCommand, CreditCardDto>
+public class AtualizarCartaoCreditoCommandHandler : IRequestHandler<AtualizarCartaoCreditoCommand, CartaoCreditoDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public UpdateCreditCardCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public AtualizarCartaoCreditoCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<CreditCardDto> Handle(UpdateCreditCardCommand request, CancellationToken cancellationToken)
+    public async Task<CartaoCreditoDto> Handle(AtualizarCartaoCreditoCommand request, CancellationToken cancellationToken)
     {
-        var card = await _context.CreditCards.FindAsync(new object[] { request.Id }, cancellationToken);
+        var card = await _context.CartoesCredito.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (card == null)
             throw new KeyNotFoundException($"Cartão de crédito com ID {request.Id} não encontrado.");
 
-        card.Name = request.Name;
-        card.DueDay = request.DueDay;
-        card.ClosingDay = request.ClosingDay;
+        card.Nome = request.Nome;
+        card.DiaVencimento = request.DiaVencimento;
+        card.DiaFechamento = request.DiaFechamento;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<CreditCardDto>(card);
+        return _mapper.Map<CartaoCreditoDto>(card);
     }
 }
 
-public class DeleteCreditCardCommandHandler : IRequestHandler<DeleteCreditCardCommand, bool>
+public class ExcluirCartaoCreditoCommandHandler : IRequestHandler<ExcluirCartaoCreditoCommand, bool>
 {
     private readonly ApplicationDbContext _context;
 
-    public DeleteCreditCardCommandHandler(ApplicationDbContext context)
+    public ExcluirCartaoCreditoCommandHandler(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    public async Task<bool> Handle(DeleteCreditCardCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(ExcluirCartaoCreditoCommand request, CancellationToken cancellationToken)
     {
-        var card = await _context.CreditCards.FindAsync(new object[] { request.Id }, cancellationToken);
+        var card = await _context.CartoesCredito.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (card == null)
             return false;
 
-        _context.CreditCards.Remove(card);
+        _context.CartoesCredito.Remove(card);
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 }
 
-public class GetAllCreditCardsQueryHandler : IRequestHandler<GetAllCreditCardsQuery, List<CreditCardDto>>
+public class ObterTodosCartoesCreditoQueryHandler : IRequestHandler<ObterTodosCartoesCreditoQuery, List<CartaoCreditoDto>>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetAllCreditCardsQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterTodosCartoesCreditoQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<List<CreditCardDto>> Handle(GetAllCreditCardsQuery request, CancellationToken cancellationToken)
+    public async Task<List<CartaoCreditoDto>> Handle(ObterTodosCartoesCreditoQuery request, CancellationToken cancellationToken)
     {
-        var cards = await _context.CreditCards
-            .OrderBy(c => c.Name)
+        var cards = await _context.CartoesCredito
+            .OrderBy(c => c.Nome)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<List<CreditCardDto>>(cards);
+        return _mapper.Map<List<CartaoCreditoDto>>(cards);
     }
 }
 
-public class GetCreditCardByIdQueryHandler : IRequestHandler<GetCreditCardByIdQuery, CreditCardDto?>
+public class ObterCartaoCreditoPorIdQueryHandler : IRequestHandler<ObterCartaoCreditoPorIdQuery, CartaoCreditoDto?>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetCreditCardByIdQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterCartaoCreditoPorIdQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<CreditCardDto?> Handle(GetCreditCardByIdQuery request, CancellationToken cancellationToken)
+    public async Task<CartaoCreditoDto?> Handle(ObterCartaoCreditoPorIdQuery request, CancellationToken cancellationToken)
     {
-        var card = await _context.CreditCards.FindAsync(new object[] { request.Id }, cancellationToken);
+        var card = await _context.CartoesCredito.FindAsync(new object[] { request.Id }, cancellationToken);
 
-        return card == null ? null : _mapper.Map<CreditCardDto>(card);
+        return card == null ? null : _mapper.Map<CartaoCreditoDto>(card);
     }
 }

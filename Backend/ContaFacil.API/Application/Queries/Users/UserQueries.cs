@@ -3,15 +3,15 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Queries.Users
 {
-    // Get all users
-    public record GetAllUsersQuery : IRequest<List<UserDto>>;
+    // Obter todos usuarios
+    public record ObterTodosUsuariosQuery : IRequest<List<UsuarioDto>>;
 
-    // Get user by ID
-    public record GetUserByIdQuery(int Id) : IRequest<UserDto?>;
+    // Obter usuario por ID
+    public record ObterUsuarioPorIdQuery(int Id) : IRequest<UsuarioDto?>;
 
-    // Get user by Firebase UID
-    public record GetUserByFirebaseUidQuery(string FirebaseUid) : IRequest<UserDto?>;
+    // Obter usuario por Firebase UID
+    public record ObterUsuarioPorFirebaseUidQuery(string FirebaseUid) : IRequest<UsuarioDto?>;
 
-    // Get user by Email
-    public record GetUserByEmailQuery(string Email) : IRequest<UserDto?>;
+    // Obter usuario por Email
+    public record ObterUsuarioPorEmailQuery(string Email) : IRequest<UsuarioDto?>;
 }

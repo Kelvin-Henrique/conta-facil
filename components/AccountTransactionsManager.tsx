@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { BankAccount, AccountTransaction } from '../types';
+import { ContaBancaria, TransacaoConta } from '../types';
 import { ICONS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/finance';
 
 interface AccountTransactionsManagerProps {
-  accounts: BankAccount[];
-  transactions: AccountTransaction[];
-  onAddTransaction: (t: AccountTransaction) => void;
+  accounts: ContaBancaria[];
+  transactions: TransacaoConta[];
+  onAddTransaction: (t: TransacaoConta) => void;
   onDeleteTransaction: (id: string) => void;
 }
 
@@ -19,11 +19,11 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    description: '',
-    category: CATEGORIES[0],
-    date: new Date().toISOString().split('T')[0],
-    amount: '', // String to support formatted input
-    accountId: accounts[0]?.id || ''
+    descricao: '',
+    categoria: CATEGORIES[0],
+    data: new Date().toISOString().split('T')[0],
+    valor: '', // String to support formatted input
+    contaBancariaId: accounts[0]?.id || ''
   });
 
   // Re-using the same masking logic from TransactionsManager
@@ -44,23 +44,23 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const numAmount = parseCurrencyToNumber(formData.amount);
-    if (!formData.description || !formData.accountId || numAmount <= 0) return;
+    const numAmount = parseCurrencyToNumber(formData.valor);
+    if (!formData.descricao || !formData.contaBancariaId || numAmount <= 0) return;
 
     const newTransaction = {
-      accountId: formData.accountId,
-      description: formData.description,
-      category: formData.category,
-      date: formData.date,
-      amount: numAmount
+      contaBancariaId: formData.contaBancariaId,
+      descricao: formData.descricao,
+      categoria: formData.categoria,
+      data: formData.data,
+      valor: numAmount
     };
 
-    onAddTransaction(newTransaction as AccountTransaction);
+    onAddTransaction(newTransaction as TransacaoConta);
     setIsModalOpen(false);
     setFormData({
       ...formData,
-      description: '',
-      amount: ''
+      descricao: '',
+      valor: ''
     });
   };
 
@@ -93,7 +93,7 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
         ) : (
           <div className="divide-y divide-slate-50">
             {[...transactions].reverse().map((t) => {
-              const acc = accounts.find(a => a.id === t.accountId);
+              const acc = accounts.find(a => a.id === t.contaBancariaId);
               return (
                 <div key={t.id} className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors group">
                   <div className="flex gap-4 items-center">
@@ -101,18 +101,18 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
                       <ICONS.Receipt className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800">{t.description}</p>
+                      <p className="font-bold text-slate-800">{t.descricao}</p>
                       <div className="flex gap-2 items-center mt-0.5">
-                        <span className="text-xs font-bold text-indigo-500">{t.category}</span>
+                        <span className="text-xs font-bold text-indigo-500">{t.categoria}</span>
                         <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                        <span className="text-xs text-slate-400 font-medium">{acc?.name || 'Conta Removida'}</span>
+                        <span className="text-xs text-slate-400 font-medium">{acc?.nome || 'Conta Removida'}</span>
                         <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                        <span className="text-xs text-slate-400 font-medium">{new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                        <span className="text-xs text-slate-400 font-medium">{new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
-                    <span className="text-lg font-black text-rose-500">-{formatCurrency(t.amount)}</span>
+                    <span className="text-lg font-black text-rose-500">-{formatCurrency(t.valor)}</span>
                     <button 
                       onClick={() => onDeleteTransaction(t.id)}
                       className="p-2 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -148,8 +148,8 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
                   required
                   autoFocus
                   type="text"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  value={formData.descricao}
+                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                   className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   placeholder="Ex: Almoço no quilo"
                 />
@@ -159,18 +159,18 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Conta Bancária</label>
                   <select
-                    value={formData.accountId}
-                    onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+                    value={formData.contaBancariaId}
+                    onChange={(e) => setFormData({ ...formData, contaBancariaId: e.target.value })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   >
-                    {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatCurrency(acc.balance)})</option>)}
+                    {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.nome} ({formatCurrency(acc.saldo)})</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Categoria</label>
                   <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    value={formData.categoria}
+                    onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   >
                     {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -183,8 +183,8 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
                   <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Data</label>
                   <input
                     type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    value={formData.data}
+                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   />
                 </div>
@@ -195,8 +195,8 @@ const AccountTransactionsManager: React.FC<AccountTransactionsManagerProps> = ({
                     <input
                       type="text"
                       inputMode="numeric"
-                      value={formData.amount}
-                      onChange={(e) => setFormData({ ...formData, amount: formatInputToCurrency(e.target.value) })}
+                      value={formData.valor}
+                      onChange={(e) => setFormData({ ...formData, valor: formatInputToCurrency(e.target.value) })}
                       className="w-full p-4 pl-11 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                       placeholder="0,00"
                     />

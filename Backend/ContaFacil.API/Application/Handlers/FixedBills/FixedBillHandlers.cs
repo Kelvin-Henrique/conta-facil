@@ -9,183 +9,183 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContaFacil.API.Application.Handlers.FixedBills;
 
-public class CreateFixedBillCommandHandler : IRequestHandler<CreateFixedBillCommand, FixedBillDto>
+public class CriarContaFixaCommandHandler : IRequestHandler<CriarContaFixaCommand, ContaFixaDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public CreateFixedBillCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public CriarContaFixaCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<FixedBillDto> Handle(CreateFixedBillCommand request, CancellationToken cancellationToken)
+    public async Task<ContaFixaDto> Handle(CriarContaFixaCommand request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
+        var user = await _context.Usuarios.FirstOrDefaultAsync(cancellationToken);
         if (user == null) throw new Exception("Nenhum usuário encontrado");
 
-        var bill = new FixedBill
+        var bill = new ContaFixa
         {
             Id = Guid.NewGuid(),
-            Name = request.Name,
-            Category = request.Category,
-            Amount = request.Amount,
-            DueDay = request.DueDay,
-            Month = request.Month,
-            Year = request.Year,
-            IsPaid = request.IsPaid,
-            IsRecurring = request.IsRecurring,
-            UserId = user.Id
+            Nome = request.Nome,
+            Categoria = request.Categoria,
+            Valor = request.Valor,
+            DiaVencimento = request.DiaVencimento,
+            Mes = request.Mes,
+            Ano = request.Ano,
+            Pago = request.Pago,
+            Recorrente = request.Recorrente,
+            UsuarioId = user.Id
         };
 
-        _context.FixedBills.Add(bill);
+        _context.ContasFixas.Add(bill);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<FixedBillDto>(bill);
+        return _mapper.Map<ContaFixaDto>(bill);
     }
 }
 
-public class UpdateFixedBillCommandHandler : IRequestHandler<UpdateFixedBillCommand, FixedBillDto>
+public class AtualizarContaFixaCommandHandler : IRequestHandler<AtualizarContaFixaCommand, ContaFixaDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public UpdateFixedBillCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public AtualizarContaFixaCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<FixedBillDto> Handle(UpdateFixedBillCommand request, CancellationToken cancellationToken)
+    public async Task<ContaFixaDto> Handle(AtualizarContaFixaCommand request, CancellationToken cancellationToken)
     {
-        var bill = await _context.FixedBills.FindAsync(new object[] { request.Id }, cancellationToken);
+        var bill = await _context.ContasFixas.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (bill == null)
             throw new KeyNotFoundException($"Conta fixa com ID {request.Id} não encontrada.");
 
-        bill.Name = request.Name;
-        bill.Category = request.Category;
-        bill.Amount = request.Amount;
-        bill.DueDay = request.DueDay;
-        bill.IsPaid = request.IsPaid;
-        bill.IsRecurring = request.IsRecurring;
+        bill.Nome = request.Nome;
+        bill.Categoria = request.Categoria;
+        bill.Valor = request.Valor;
+        bill.DiaVencimento = request.DiaVencimento;
+        bill.Pago = request.Pago;
+        bill.Recorrente = request.Recorrente;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<FixedBillDto>(bill);
+        return _mapper.Map<ContaFixaDto>(bill);
     }
 }
 
-public class DeleteFixedBillCommandHandler : IRequestHandler<DeleteFixedBillCommand, bool>
+public class ExcluirContaFixaCommandHandler : IRequestHandler<ExcluirContaFixaCommand, bool>
 {
     private readonly ApplicationDbContext _context;
 
-    public DeleteFixedBillCommandHandler(ApplicationDbContext context)
+    public ExcluirContaFixaCommandHandler(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    public async Task<bool> Handle(DeleteFixedBillCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(ExcluirContaFixaCommand request, CancellationToken cancellationToken)
     {
-        var bill = await _context.FixedBills.FindAsync(new object[] { request.Id }, cancellationToken);
+        var bill = await _context.ContasFixas.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (bill == null)
             return false;
 
-        _context.FixedBills.Remove(bill);
+        _context.ContasFixas.Remove(bill);
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 }
 
-public class ToggleFixedBillPaidCommandHandler : IRequestHandler<ToggleFixedBillPaidCommand, FixedBillDto>
+public class AlternarContaFixaPagaCommandHandler : IRequestHandler<AlternarContaFixaPagaCommand, ContaFixaDto>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public ToggleFixedBillPaidCommandHandler(ApplicationDbContext context, IMapper mapper)
+    public AlternarContaFixaPagaCommandHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<FixedBillDto> Handle(ToggleFixedBillPaidCommand request, CancellationToken cancellationToken)
+    public async Task<ContaFixaDto> Handle(AlternarContaFixaPagaCommand request, CancellationToken cancellationToken)
     {
-        var bill = await _context.FixedBills.FindAsync(new object[] { request.Id }, cancellationToken);
+        var bill = await _context.ContasFixas.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (bill == null)
             throw new KeyNotFoundException($"Conta fixa com ID {request.Id} não encontrada.");
 
-        bill.IsPaid = !bill.IsPaid;
+        bill.Pago = !bill.Pago;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<FixedBillDto>(bill);
+        return _mapper.Map<ContaFixaDto>(bill);
     }
 }
 
-public class GetAllFixedBillsQueryHandler : IRequestHandler<GetAllFixedBillsQuery, List<FixedBillDto>>
+public class ObterTodasContasFixasQueryHandler : IRequestHandler<ObterTodasContasFixasQuery, List<ContaFixaDto>>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetAllFixedBillsQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterTodasContasFixasQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<List<FixedBillDto>> Handle(GetAllFixedBillsQuery request, CancellationToken cancellationToken)
+    public async Task<List<ContaFixaDto>> Handle(ObterTodasContasFixasQuery request, CancellationToken cancellationToken)
     {
-        var bills = await _context.FixedBills
-            .OrderBy(b => b.Year)
-            .ThenBy(b => b.Month)
-            .ThenBy(b => b.DueDay)
+        var bills = await _context.ContasFixas
+            .OrderBy(b => b.Ano)
+            .ThenBy(b => b.Mes)
+            .ThenBy(b => b.DiaVencimento)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<List<FixedBillDto>>(bills);
+        return _mapper.Map<List<ContaFixaDto>>(bills);
     }
 }
 
-public class GetFixedBillByIdQueryHandler : IRequestHandler<GetFixedBillByIdQuery, FixedBillDto?>
+public class ObterContaFixaPorIdQueryHandler : IRequestHandler<ObterContaFixaPorIdQuery, ContaFixaDto?>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetFixedBillByIdQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterContaFixaPorIdQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<FixedBillDto?> Handle(GetFixedBillByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ContaFixaDto?> Handle(ObterContaFixaPorIdQuery request, CancellationToken cancellationToken)
     {
-        var bill = await _context.FixedBills.FindAsync(new object[] { request.Id }, cancellationToken);
+        var bill = await _context.ContasFixas.FindAsync(new object[] { request.Id }, cancellationToken);
 
-        return bill == null ? null : _mapper.Map<FixedBillDto>(bill);
+        return bill == null ? null : _mapper.Map<ContaFixaDto>(bill);
     }
 }
 
-public class GetFixedBillsByMonthYearQueryHandler : IRequestHandler<GetFixedBillsByMonthYearQuery, List<FixedBillDto>>
+public class ObterContasFixasPorMesAnoQueryHandler : IRequestHandler<ObterContasFixasPorMesAnoQuery, List<ContaFixaDto>>
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetFixedBillsByMonthYearQueryHandler(ApplicationDbContext context, IMapper mapper)
+    public ObterContasFixasPorMesAnoQueryHandler(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<List<FixedBillDto>> Handle(GetFixedBillsByMonthYearQuery request, CancellationToken cancellationToken)
+    public async Task<List<ContaFixaDto>> Handle(ObterContasFixasPorMesAnoQuery request, CancellationToken cancellationToken)
     {
-        var bills = await _context.FixedBills
-            .Where(b => b.Month == request.Month && b.Year == request.Year)
-            .OrderBy(b => b.DueDay)
+        var bills = await _context.ContasFixas
+            .Where(b => b.Mes == request.Mes && b.Ano == request.Ano)
+            .OrderBy(b => b.DiaVencimento)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<List<FixedBillDto>>(bills);
+        return _mapper.Map<List<ContaFixaDto>>(bills);
     }
 }

@@ -1,9 +1,11 @@
-import { BankAccount, CreditCard, Purchase, AccountTransaction, FixedBill } from '../types';
+import { ContaBancaria, CartaoCredito, Compra, TransacaoConta, ContaFixa } from '../types';
 
 const API_BASE_URL = 'http://localhost:5005/api';
 
 // Helper para requisições
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  console.log(`Fazendo requisição para: ${API_BASE_URL}${endpoint}`, options?.method || 'GET');
+  
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -13,271 +15,282 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error(`Erro na API (${response.status}):`, errorText);
+    throw new Error(`API Error ${response.status}: ${errorText || response.statusText}`);
+  }
+
+  // Se a resposta for 204 No Content, retorna undefined
+  if (response.status === 204) {
+    console.log('Resposta 204 No Content - operação bem-sucedida');
+    return undefined as T;
   }
 
   return response.json();
 }
 
 // Mapear resposta do backend para o formato do frontend
-function mapBankAccount(dto: any): BankAccount {
+function mapContaBancaria(dto: any): ContaBancaria {
   return {
     id: dto.id,
-    name: dto.name,
-    bankName: dto.bankName,
-    balance: dto.balance,
+    nome: dto.nome,
+    nomeBanco: dto.nomeBanco,
+    saldo: dto.saldo,
   };
 }
 
-function mapCreditCard(dto: any): CreditCard {
+function mapCartaoCredito(dto: any): CartaoCredito {
   return {
     id: dto.id,
-    name: dto.name,
-    dueDay: dto.dueDay,
-    closingDay: dto.closingDay,
+    nome: dto.nome,
+    diaVencimento: dto.diaVencimento,
+    diaFechamento: dto.diaFechamento,
   };
 }
 
-function mapPurchase(dto: any): Purchase {
+function mapCompra(dto: any): Compra {
   return {
     id: dto.id,
-    cardId: dto.creditCardId,
-    description: dto.description,
-    category: dto.category,
-    date: dto.date,
-    totalAmount: dto.totalAmount,
-    installments: dto.installments,
+    cartaoCreditoId: dto.cartaoCreditoId,
+    descricao: dto.descricao,
+    categoria: dto.categoria,
+    data: dto.data,
+    valorTotal: dto.valorTotal,
+    parcelas: dto.parcelas,
   };
 }
 
-function mapAccountTransaction(dto: any): AccountTransaction {
+function mapTransacaoConta(dto: any): TransacaoConta {
   return {
     id: dto.id,
-    accountId: dto.bankAccountId,
-    description: dto.description,
-    category: dto.category,
-    date: dto.date,
-    amount: dto.amount,
+    contaBancariaId: dto.contaBancariaId,
+    descricao: dto.descricao,
+    categoria: dto.categoria,
+    data: dto.data,
+    valor: dto.valor,
   };
 }
 
-function mapFixedBill(dto: any): FixedBill {
+function mapContaFixa(dto: any): ContaFixa {
   return {
     id: dto.id,
-    name: dto.name,
-    category: dto.category,
-    amount: dto.amount,
-    dueDay: dto.dueDay,
-    month: dto.month,
-    year: dto.year,
-    isPaid: dto.isPaid,
-    isRecurring: dto.isRecurring,
+    nome: dto.nome,
+    categoria: dto.categoria,
+    valor: dto.valor,
+    diaVencimento: dto.diaVencimento,
+    mes: dto.mes,
+    ano: dto.ano,
+    pago: dto.pago,
+    recorrente: dto.recorrente,
   };
 }
 
-// ==================== BANK ACCOUNTS ====================
-export const bankAccountsApi = {
+// ==================== CONTAS BANCÁRIAS ====================
+export const contasBancariasApi = {
   getAll: async () => {
-    const data = await fetchApi<any[]>('/BankAccounts');
-    return data.map(mapBankAccount);
+    const data = await fetchApi<any[]>('/ContasBancarias');
+    return data.map(mapContaBancaria);
   },
   
   getById: async (id: string) => {
-    const data = await fetchApi<any>(`/BankAccounts/${id}`);
-    return mapBankAccount(data);
+    const data = await fetchApi<any>(`/ContasBancarias/${id}`);
+    return mapContaBancaria(data);
   },
   
-  create: async (account: Omit<BankAccount, 'id'>) => {
-    const data = await fetchApi<any>('/BankAccounts', {
+  create: async (conta: Omit<ContaBancaria, 'id'>) => {
+    const data = await fetchApi<any>('/ContasBancarias', {
       method: 'POST',
-      body: JSON.stringify(account),
+      body: JSON.stringify(conta),
     });
-    return mapBankAccount(data);
+    return mapContaBancaria(data);
   },
   
-  update: async (id: string, account: Partial<BankAccount>) => {
-    const data = await fetchApi<any>(`/BankAccounts/${id}`, {
+  update: async (id: string, conta: Partial<ContaBancaria>) => {
+    const data = await fetchApi<any>(`/ContasBancarias/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ ...account, id }),
+      body: JSON.stringify({ ...conta, id }),
     });
-    return mapBankAccount(data);
+    return mapContaBancaria(data);
   },
   
   delete: (id: string) =>
-    fetchApi<void>(`/BankAccounts/${id}`, {
+    fetchApi<void>(`/ContasBancarias/${id}`, {
       method: 'DELETE',
     }),
 };
 
-// ==================== CREDIT CARDS ====================
-export const creditCardsApi = {
+// ==================== CARTÕES DE CRÉDITO ====================
+export const cartoesCreditoApi = {
   getAll: async () => {
-    const data = await fetchApi<any[]>('/CreditCards');
-    return data.map(mapCreditCard);
+    const data = await fetchApi<any[]>('/CartoesCredito');
+    return data.map(mapCartaoCredito);
   },
   
   getById: async (id: string) => {
-    const data = await fetchApi<any>(`/CreditCards/${id}`);
-    return mapCreditCard(data);
+    const data = await fetchApi<any>(`/CartoesCredito/${id}`);
+    return mapCartaoCredito(data);
   },
   
-  create: async (card: Omit<CreditCard, 'id'>) => {
-    const data = await fetchApi<any>('/CreditCards', {
+  create: async (cartao: Omit<CartaoCredito, 'id'>) => {
+    const data = await fetchApi<any>('/CartoesCredito', {
       method: 'POST',
-      body: JSON.stringify(card),
+      body: JSON.stringify(cartao),
     });
-    return mapCreditCard(data);
+    return mapCartaoCredito(data);
   },
   
-  update: async (id: string, card: Partial<CreditCard>) => {
-    const data = await fetchApi<any>(`/CreditCards/${id}`, {
+  update: async (id: string, cartao: Partial<CartaoCredito>) => {
+    const data = await fetchApi<any>(`/CartoesCredito/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ ...card, id }),
+      body: JSON.stringify({ ...cartao, id }),
     });
-    return mapCreditCard(data);
+    return mapCartaoCredito(data);
   },
   
   delete: (id: string) =>
-    fetchApi<void>(`/CreditCards/${id}`, {
+    fetchApi<void>(`/CartoesCredito/${id}`, {
       method: 'DELETE',
     }),
 };
 
-// ==================== PURCHASES ====================
-export const purchasesApi = {
+// ==================== COMPRAS ====================
+export const comprasApi = {
   getAll: async () => {
-    const data = await fetchApi<any[]>('/Purchases');
-    return data.map(mapPurchase);
+    const data = await fetchApi<any[]>('/Compras');
+    return data.map(mapCompra);
   },
   
   getById: async (id: string) => {
-    const data = await fetchApi<any>(`/Purchases/${id}`);
-    return mapPurchase(data);
+    const data = await fetchApi<any>(`/Compras/${id}`);
+    return mapCompra(data);
   },
   
-  getByCard: async (cardId: string) => {
-    const data = await fetchApi<any[]>(`/Purchases/card/${cardId}`);
-    return data.map(mapPurchase);
+  getByCard: async (cartaoId: string) => {
+    const data = await fetchApi<any[]>(`/Compras/cartao/${cartaoId}`);
+    return data.map(mapCompra);
   },
   
-  create: async (purchase: Omit<Purchase, 'id'>) => {
+  create: async (compra: Omit<Compra, 'id'>) => {
     // Mapear de volta para o formato do backend
     const dto = {
-      creditCardId: purchase.cardId,
-      description: purchase.description,
-      category: purchase.category,
-      date: purchase.date,
-      totalAmount: purchase.totalAmount,
-      installments: purchase.installments,
+      cartaoCreditoId: compra.cartaoCreditoId,
+      descricao: compra.descricao,
+      categoria: compra.categoria,
+      data: compra.data,
+      valorTotal: compra.valorTotal,
+      parcelas: compra.parcelas,
     };
-    const data = await fetchApi<any>('/Purchases', {
+    const data = await fetchApi<any>('/Compras', {
       method: 'POST',
       body: JSON.stringify(dto),
     });
-    return mapPurchase(data);
+    return mapCompra(data);
   },
   
-  update: async (id: string, purchase: Partial<Purchase>) => {
-    const dto: any = { ...purchase };
-    if (purchase.cardId) {
-      dto.creditCardId = purchase.cardId;
-      delete dto.cardId;
-    }
-    const data = await fetchApi<any>(`/Purchases/${id}`, {
+  update: async (id: string, compra: Omit<Compra, 'id'>) => {
+    const dto = {
+      cartaoCreditoId: compra.cartaoCreditoId,
+      descricao: compra.descricao,
+      categoria: compra.categoria,
+      data: compra.data,
+      valorTotal: compra.valorTotal,
+      parcelas: compra.parcelas,
+    };
+    const data = await fetchApi<any>(`/Compras/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ ...dto, id }),
+      body: JSON.stringify(dto),
     });
-    return mapPurchase(data);
+    return mapCompra(data);
   },
   
   delete: (id: string) =>
-    fetchApi<void>(`/Purchases/${id}`, {
+    fetchApi<void>(`/Compras/${id}`, {
       method: 'DELETE',
     }),
 };
 
-// ==================== ACCOUNT TRANSACTIONS ====================
-export const accountTransactionsApi = {
+// ==================== TRANSAÇÕES DE CONTA ====================
+export const transacoesContaApi = {
   getAll: async () => {
-    const data = await fetchApi<any[]>('/AccountTransactions');
-    return data.map(mapAccountTransaction);
+    const data = await fetchApi<any[]>('/TransacoesConta');
+    return data.map(mapTransacaoConta);
   },
   
   getById: async (id: string) => {
-    const data = await fetchApi<any>(`/AccountTransactions/${id}`);
-    return mapAccountTransaction(data);
+    const data = await fetchApi<any>(`/TransacoesConta/${id}`);
+    return mapTransacaoConta(data);
   },
   
-  getByAccount: async (accountId: string) => {
-    const data = await fetchApi<any[]>(`/AccountTransactions/account/${accountId}`);
-    return data.map(mapAccountTransaction);
+  getByAccount: async (contaId: string) => {
+    const data = await fetchApi<any[]>(`/TransacoesConta/conta/${contaId}`);
+    return data.map(mapTransacaoConta);
   },
   
-  create: async (transaction: Omit<AccountTransaction, 'id'>) => {
+  create: async (transacao: Omit<TransacaoConta, 'id'>) => {
     // Mapear de volta para o formato do backend
     const dto = {
-      bankAccountId: transaction.accountId,
-      description: transaction.description,
-      category: transaction.category,
-      date: transaction.date,
-      amount: transaction.amount,
+      contaBancariaId: transacao.contaBancariaId,
+      descricao: transacao.descricao,
+      categoria: transacao.categoria,
+      data: transacao.data,
+      valor: transacao.valor,
     };
-    const data = await fetchApi<any>('/AccountTransactions', {
+    const data = await fetchApi<any>('/TransacoesConta', {
       method: 'POST',
       body: JSON.stringify(dto),
     });
-    return mapAccountTransaction(data);
+    return mapTransacaoConta(data);
   },
   
-  update: async (id: string, transaction: Partial<AccountTransaction>) => {
-    const dto: any = { ...transaction };
-    if (transaction.accountId) {
-      dto.bankAccountId = transaction.accountId;
-      delete dto.accountId;
+  update: async (id: string, transacao: Partial<TransacaoConta>) => {
+    const dto: any = { ...transacao };
+    if (transacao.contaBancariaId) {
+      dto.contaBancariaId = transacao.contaBancariaId;
+      delete dto.contaBancariaId;
     }
-    const data = await fetchApi<any>(`/AccountTransactions/${id}`, {
+    const data = await fetchApi<any>(`/TransacoesConta/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ ...dto, id }),
     });
-    return mapAccountTransaction(data);
+    return mapTransacaoConta(data);
   },
   
   delete: (id: string) =>
-    fetchApi<void>(`/AccountTransactions/${id}`, {
+    fetchApi<void>(`/TransacoesConta/${id}`, {
       method: 'DELETE',
     }),
 };
 
-// ==================== FIXED BILLS ====================
-export const fixedBillsApi = {
+// ==================== CONTAS FIXAS ====================
+export const contasFixasApi = {
   getAll: async () => {
-    const data = await fetchApi<any[]>('/FixedBills');
-    return data.map(mapFixedBill);
+    const data = await fetchApi<any[]>('/ContasFixas');
+    return data.map(mapContaFixa);
   },
   
   getById: async (id: string) => {
-    const data = await fetchApi<any>(`/FixedBills/${id}`);
-    return mapFixedBill(data);
+    const data = await fetchApi<any>(`/ContasFixas/${id}`);
+    return mapContaFixa(data);
   },
   
-  create: async (bill: Omit<FixedBill, 'id'>) => {
-    const data = await fetchApi<any>('/FixedBills', {
+  create: async (conta: Omit<ContaFixa, 'id'>) => {
+    const data = await fetchApi<any>('/ContasFixas', {
       method: 'POST',
-      body: JSON.stringify(bill),
+      body: JSON.stringify(conta),
     });
-    return mapFixedBill(data);
+    return mapContaFixa(data);
   },
   
-  update: async (id: string, bill: Partial<FixedBill>) => {
-    const data = await fetchApi<any>(`/FixedBills/${id}`, {
+  update: async (id: string, conta: Partial<ContaFixa>) => {
+    const data = await fetchApi<any>(`/ContasFixas/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ ...bill, id }),
+      body: JSON.stringify({ ...conta, id }),
     });
-    return mapFixedBill(data);
+    return mapContaFixa(data);
   },
   
   delete: (id: string) =>
-    fetchApi<void>(`/FixedBills/${id}`, {
+    fetchApi<void>(`/ContasFixas/${id}`, {
       method: 'DELETE',
     }),
 };

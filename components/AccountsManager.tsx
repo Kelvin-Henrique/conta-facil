@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { BankAccount } from '../types';
+import { ContaBancaria } from '../types';
 import { ICONS } from '../constants';
 import { formatCurrency } from '../utils/finance';
-import { bankAccountsApi } from '../services/apiService';
+import { contasBancariasApi } from '../services/apiService';
 
 interface AccountsManagerProps {
-  accounts: BankAccount[];
-  setAccounts: React.Dispatch<React.SetStateAction<BankAccount[]>>;
+  accounts: ContaBancaria[];
+  setAccounts: React.Dispatch<React.SetStateAction<ContaBancaria[]>>;
 }
 
 const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts }) => {
@@ -16,37 +16,37 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
     mode: 'add'
   });
   
-  const [formData, setFormData] = useState({ name: '', bankName: '', balance: '' });
+  const [formData, setFormData] = useState({ nome: '', nomeBanco: '', saldo: '' });
 
   const openAddModal = () => {
-    setFormData({ name: '', bankName: '', balance: '0' });
+    setFormData({ nome: '', nomeBanco: '', saldo: '0' });
     setModalConfig({ isOpen: true, mode: 'add' });
   };
 
-  const openEditModal = (acc: BankAccount) => {
-    setFormData({ name: acc.name, bankName: acc.bankName, balance: acc.balance.toString() });
+  const openEditModal = (acc: ContaBancaria) => {
+    setFormData({ nome: acc.nome, nomeBanco: acc.nomeBanco, saldo: acc.saldo.toString() });
     setModalConfig({ isOpen: true, mode: 'edit', accountId: acc.id });
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.bankName) return;
+    if (!formData.nome || !formData.nomeBanco) return;
     
-    const balanceNum = parseFloat(formData.balance) || 0;
+    const balanceNum = parseFloat(formData.saldo) || 0;
 
     try {
       if (modalConfig.mode === 'add') {
         const newAccount = {
-          name: formData.name,
-          bankName: formData.bankName,
-          balance: balanceNum,
+          nome: formData.nome,
+          nomeBanco: formData.nomeBanco,
+          saldo: balanceNum,
         };
-        const created = await bankAccountsApi.create(newAccount);
+        const created = await contasBancariasApi.create(newAccount);
         setAccounts([...accounts, created]);
       } else {
-        const updated = await bankAccountsApi.update(modalConfig.accountId!, {
-          name: formData.name,
-          bankName: formData.bankName,
-          balance: balanceNum
+        const updated = await contasBancariasApi.update(modalConfig.accountId!, {
+          nome: formData.nome,
+          nomeBanco: formData.nomeBanco,
+          saldo: balanceNum
         });
         setAccounts(accounts.map(acc => 
           acc.id === modalConfig.accountId ? updated : acc
@@ -64,7 +64,7 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
     if (!confirm("Deseja realmente excluir esta conta?")) return;
     
     try {
-      await bankAccountsApi.delete(id);
+      await contasBancariasApi.delete(id);
       setAccounts(accounts.filter(a => a.id !== id));
       setModalConfig({ isOpen: false, mode: 'add' });
     } catch (error) {
@@ -98,11 +98,11 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-800 text-lg">{acc.name}</h3>
+                  <h3 className="font-bold text-slate-800 text-lg">{acc.nome}</h3>
                   <ICONS.Pencil className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <p className="text-sm text-slate-500">{acc.bankName}</p>
-                <p className="text-xl font-bold text-indigo-600 mt-1">{formatCurrency(acc.balance)}</p>
+                <p className="text-sm text-slate-500">{acc.nomeBanco}</p>
+                <p className="text-xl font-bold text-indigo-600 mt-1">{formatCurrency(acc.saldo)}</p>
               </div>
             </div>
           </button>
@@ -137,8 +137,8 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
                 <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Apelido da Conta</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold placeholder:text-slate-400"
                   placeholder="Ex: Minha Conta Principal"
                 />
@@ -148,8 +148,8 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
                 <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Instituição Financeira</label>
                 <input
                   type="text"
-                  value={formData.bankName}
-                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                  value={formData.nomeBanco}
+                  onChange={(e) => setFormData({ ...formData, nomeBanco: e.target.value })}
                   className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold placeholder:text-slate-400"
                   placeholder="Ex: NuBank, Itaú, Inter..."
                 />
@@ -161,8 +161,8 @@ const AccountsManager: React.FC<AccountsManagerProps> = ({ accounts, setAccounts
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
                   <input
                     type="number"
-                    value={formData.balance}
-                    onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                    value={formData.saldo}
+                    onChange={(e) => setFormData({ ...formData, saldo: e.target.value })}
                     className="w-full p-4 pl-11 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   />
                 </div>

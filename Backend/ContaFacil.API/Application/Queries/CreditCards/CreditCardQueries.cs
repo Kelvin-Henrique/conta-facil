@@ -3,6 +3,6 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Queries.CreditCards;
 
-public record GetAllCreditCardsQuery : IRequest<List<CreditCardDto>>;
+public record ObterTodosCartoesCreditoQuery : IRequest<List<CartaoCreditoDto>>;
 
-public record GetCreditCardByIdQuery(Guid Id) : IRequest<CreditCardDto?>;
+public record ObterCartaoCreditoPorIdQuery(Guid Id) : IRequest<CartaoCreditoDto?>;

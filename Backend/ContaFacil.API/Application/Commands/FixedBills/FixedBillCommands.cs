@@ -3,27 +3,27 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Commands.FixedBills;
 
-public record CreateFixedBillCommand(
-    string Name,
-    string Category,
-    decimal Amount,
-    int DueDay,
-    int Month,
-    int Year,
-    bool IsPaid,
-    bool IsRecurring
-) : IRequest<FixedBillDto>;
+public record CriarContaFixaCommand(
+    string Nome,
+    string Categoria,
+    decimal Valor,
+    int DiaVencimento,
+    int Mes,
+    int Ano,
+    bool Pago,
+    bool Recorrente
+) : IRequest<ContaFixaDto>;
 
-public record UpdateFixedBillCommand(
+public record AtualizarContaFixaCommand(
     Guid Id,
-    string Name,
-    string Category,
-    decimal Amount,
-    int DueDay,
-    bool IsPaid,
-    bool IsRecurring
-) : IRequest<FixedBillDto>;
+    string Nome,
+    string Categoria,
+    decimal Valor,
+    int DiaVencimento,
+    bool Pago,
+    bool Recorrente
+) : IRequest<ContaFixaDto>;
 
-public record DeleteFixedBillCommand(Guid Id) : IRequest<bool>;
+public record ExcluirContaFixaCommand(Guid Id) : IRequest<bool>;
 
-public record ToggleFixedBillPaidCommand(Guid Id) : IRequest<FixedBillDto>;
+public record AlternarContaFixaPagaCommand(Guid Id) : IRequest<ContaFixaDto>;

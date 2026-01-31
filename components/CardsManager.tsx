@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
-import { CreditCard, Purchase, MonthlyBill } from '../types';
+import { CartaoCredito, Compra, FaturaMensal } from '../types';
 import { ICONS } from '../constants';
 import { formatCurrency, calculateBills, getBestDayToBuy } from '../utils/finance';
 import TransactionsManager from './TransactionsManager';
-import { creditCardsApi } from '../services/apiService';
+import { cartoesCreditoApi, comprasApi } from '../services/apiService';
+import { useNotification } from './NotificationSystem';
 
 interface CardsManagerProps {
-  cards: CreditCard[];
-  setCards: React.Dispatch<React.SetStateAction<CreditCard[]>>;
-  purchases: Purchase[];
-  setPurchases: React.Dispatch<React.SetStateAction<Purchase[]>>;
+  cards: CartaoCredito[];
+  setCards: React.Dispatch<React.SetStateAction<CartaoCredito[]>>;
+  purchases: Compra[];
+  setPurchases: React.Dispatch<React.SetStateAction<Compra[]>>;
 }
 
 const MONTHS = [
@@ -19,40 +20,63 @@ const MONTHS = [
 ];
 
 const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases, setPurchases }) => {
+  const { showSuccess, showError, confirm } = useNotification();
+  
   const [cardModalConfig, setCardModalConfig] = useState<{ isOpen: boolean; mode: 'add' | 'edit'; cardId?: string }>({
     isOpen: false,
     mode: 'add'
   });
   
   const [isAddingPurchase, setIsAddingPurchase] = useState(false);
+  const [editingPurchase, setEditingPurchase] = useState<Compra | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(cards[0]?.id || null);
   
   const now = new Date();
   const [viewingMonthIndex, setViewingMonthIndex] = useState(now.getMonth());
   const [viewingYear, setViewingYear] = useState(now.getFullYear());
 
-  const [cardFormData, setCardFormData] = useState({ name: '', dueDay: 10, closingDay: 1 });
+  const [cardFormData, setCardFormData] = useState({ nome: '', diaVencimento: 10, diaFechamento: 1 });
 
   const openAddCard = () => {
-    setCardFormData({ name: '', dueDay: 10, closingDay: 1 });
+    setCardFormData({ nome: '', diaVencimento: 10, diaFechamento: 1 });
     setCardModalConfig({ isOpen: true, mode: 'add' });
   };
 
-  const openEditCard = (card: CreditCard) => {
-    setCardFormData({ name: card.name, dueDay: card.dueDay, closingDay: card.closingDay });
+  const openEditCard = (card: CartaoCredito) => {
+    setCardFormData({ nome: card.nome, diaVencimento: card.diaVencimento, diaFechamento: card.diaFechamento });
     setCardModalConfig({ isOpen: true, mode: 'edit', cardId: card.id });
   };
 
+  const handleDeletePurchase = async (compraId: string) => {
+    const confirmed = await confirm(
+      'Excluir Compra',
+      'Tem certeza que deseja excluir esta compra? Esta ação não pode ser desfeita.'
+    );
+    
+    if (!confirmed) return;
+    
+    console.log('Deletando compra com ID:', compraId);
+    
+    try {
+      await comprasApi.delete(compraId);
+      setPurchases(prev => prev.filter(p => p.id !== compraId));
+      showSuccess('Compra excluída com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir compra:', error);
+      showError('Erro ao excluir compra. Tente novamente.');
+    }
+  };
+
   const saveCard = async () => {
-    if (!cardFormData.name) return;
+    if (!cardFormData.nome) return;
     
     try {
       if (cardModalConfig.mode === 'add') {
-        const created = await creditCardsApi.create(cardFormData);
+        const created = await cartoesCreditoApi.create(cardFormData);
         setCards([...cards, created]);
         setSelectedCardId(created.id);
       } else {
-        const updated = await creditCardsApi.update(cardModalConfig.cardId!, cardFormData);
+        const updated = await cartoesCreditoApi.update(cardModalConfig.cardId!, cardFormData);
         setCards(cards.map(c => c.id === cardModalConfig.cardId ? updated : c));
       }
       
@@ -67,7 +91,7 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
     if (!confirm("Tem certeza que deseja excluir este cartão? Todas as compras vinculadas serão afetadas.")) return;
     
     try {
-      await creditCardsApi.delete(id);
+      await cartoesCreditoApi.delete(id);
       setCards(cards.filter(c => c.id !== id));
       if (selectedCardId === id) setSelectedCardId(null);
       setCardModalConfig({ isOpen: false, mode: 'add' });
@@ -77,7 +101,7 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
     }
   };
 
-  const handleCardChipClick = (card: CreditCard) => {
+  const handleCardChipClick = (card: CartaoCredito) => {
     if (selectedCardId === card.id) {
       // If already selected, open edit modal
       openEditCard(card);
@@ -90,11 +114,11 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
   const selectedCard = cards.find(c => c.id === selectedCardId);
   const allBills = selectedCard ? calculateBills(purchases, selectedCard) : [];
   
-  const currentBill = allBills.find(b => b.month === viewingMonthIndex && b.year === viewingYear) || {
-    month: viewingMonthIndex,
-    year: viewingYear,
+  const currentBill = allBills.find(b => b.mes === viewingMonthIndex && b.ano === viewingYear) || {
+    mes: viewingMonthIndex,
+    ano: viewingYear,
     total: 0,
-    items: []
+    itens: []
   };
 
   const nextMonth = () => {
@@ -149,7 +173,7 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
                 : 'bg-white text-slate-600 border-slate-100 hover:border-indigo-200'
             }`}
           >
-            {card.name}
+            {card.nome}
             {selectedCardId === card.id && (
               <ICONS.Pencil className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100 transition-opacity" />
             )}
@@ -172,9 +196,9 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
                     <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-xl font-bold">{MONTHS[viewingMonthIndex]} {viewingYear}</h3>
-                          <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">{selectedCard?.name}</span>
+                          <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">{selectedCard?.nome}</span>
                         </div>
-                        <p className="text-indigo-400 text-sm font-semibold">Melhor dia para compra: {getBestDayToBuy(selectedCard?.closingDay || 0)}</p>
+                        <p className="text-indigo-400 text-sm font-semibold">Melhor dia para compra: {getBestDayToBuy(selectedCard?.diaFechamento || 0)}</p>
                     </div>
                 </div>
 
@@ -191,7 +215,7 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
                 <div className="text-center md:text-right">
                     <p className="text-xs text-slate-400 uppercase tracking-widest mb-1 font-bold">Fatura ({MONTHS[viewingMonthIndex].toLowerCase()})</p>
                     <p className="text-4xl font-black">{formatCurrency(currentBill.total)}</p>
-                    <p className="text-xs text-slate-500 mt-1 font-bold">DIA DE VENCIMENTO {selectedCard?.dueDay}/{String(viewingMonthIndex + 1).padStart(2, '0')}</p>
+                    <p className="text-xs text-slate-500 mt-1 font-bold">DIA DE VENCIMENTO {selectedCard?.diaVencimento}/{String(viewingMonthIndex + 1).padStart(2, '0')}</p>
                 </div>
             </div>
           </div>
@@ -200,30 +224,54 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
           <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
             <div className="p-6 border-b border-slate-50 flex justify-between items-center">
                 <h4 className="font-bold text-slate-800">Itens da Fatura</h4>
-                <span className="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-bold">{currentBill.items.length} Lançamentos</span>
+                <span className="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-bold">{currentBill.itens.length} Lançamentos</span>
             </div>
-            {currentBill.items.length === 0 ? (
+            {currentBill.itens.length === 0 ? (
                 <div className="p-16 text-center text-slate-400 font-medium">
                     Nenhuma parcela ou compra programada para este mês.
                 </div>
             ) : (
                 <div className="divide-y divide-slate-50">
-                    {currentBill.items.map((item, i) => (
-                        <div key={i} className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                            <div className="flex gap-4 items-center">
+                    {currentBill.itens.map((item, i) => (
+                        <div key={i} className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors group">
+                            <div className="flex gap-4 items-center flex-1">
                                 <div className="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl">
                                     <ICONS.History className="w-5 h-5" />
                                 </div>
-                                <div>
-                                    <p className="font-bold text-slate-800">{item.description}</p>
+                                <div className="flex-1">
+                                    <p className="font-bold text-slate-800">{item.descricao}</p>
                                     <div className="flex gap-2 items-center mt-0.5">
-                                        <span className="text-xs text-slate-400 font-medium">Parcela {item.installmentNumber}/{item.totalInstallments}</span>
+                                        <span className="text-xs text-slate-400 font-medium">Parcela {item.numeroParcela}/{item.totalParcelas}</span>
                                         <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                        <span className="text-xs font-bold text-indigo-500">{item.category}</span>
+                                        <span className="text-xs font-bold text-indigo-500">{item.categoria}</span>
                                     </div>
                                 </div>
                             </div>
-                            <span className="text-lg font-black text-slate-700">{formatCurrency(item.amount)}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-lg font-black text-slate-700">{formatCurrency(item.valor)}</span>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => {
+                                            const purchase = purchases.find(p => p.id === item.compraId);
+                                            if (purchase) {
+                                                setEditingPurchase(purchase);
+                                                setIsAddingPurchase(true);
+                                            }
+                                        }}
+                                        className="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600 transition-colors"
+                                        title="Editar lançamento"
+                                    >
+                                        <ICONS.Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeletePurchase(item.compraId)}
+                                        className="p-2 hover:bg-rose-50 rounded-lg text-rose-500 transition-colors"
+                                        title="Excluir lançamento"
+                                    >
+                                        <ICONS.Trash className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -262,8 +310,8 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
                 <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Nome do Cartão</label>
                 <input
                   type="text"
-                  value={cardFormData.name}
-                  onChange={(e) => setCardFormData({ ...cardFormData, name: e.target.value })}
+                  value={cardFormData.nome}
+                  onChange={(e) => setCardFormData({ ...cardFormData, nome: e.target.value })}
                   className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold placeholder:text-slate-400"
                   placeholder="Ex: Nubank Black"
                 />
@@ -275,8 +323,8 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
                     type="number"
                     min="1"
                     max="31"
-                    value={cardFormData.closingDay}
-                    onChange={(e) => setCardFormData({ ...cardFormData, closingDay: Number(e.target.value) })}
+                    value={cardFormData.diaFechamento}
+                    onChange={(e) => setCardFormData({ ...cardFormData, diaFechamento: Number(e.target.value) })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   />
                 </div>
@@ -286,8 +334,8 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
                     type="number"
                     min="1"
                     max="31"
-                    value={cardFormData.dueDay}
-                    onChange={(e) => setCardFormData({ ...cardFormData, dueDay: Number(e.target.value) })}
+                    value={cardFormData.diaVencimento}
+                    onChange={(e) => setCardFormData({ ...cardFormData, diaVencimento: Number(e.target.value) })}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 font-bold"
                   />
                 </div>
@@ -317,10 +365,14 @@ const CardsManager: React.FC<CardsManagerProps> = ({ cards, setCards, purchases,
       {/* Purchase Modal */}
       <TransactionsManager 
         isOpen={isAddingPurchase} 
-        onClose={() => setIsAddingPurchase(false)}
+        onClose={() => {
+          setIsAddingPurchase(false);
+          setEditingPurchase(null);
+        }}
         cards={cards}
         selectedCardId={selectedCardId || undefined}
         setPurchases={setPurchases}
+        editingPurchase={editingPurchase}
       />
     </div>
   );

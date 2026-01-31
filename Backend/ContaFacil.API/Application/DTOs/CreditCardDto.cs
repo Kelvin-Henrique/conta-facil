@@ -1,23 +1,23 @@
 namespace ContaFacil.API.Application.DTOs;
 
-public class CreditCardDto
+public class CartaoCreditoDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int DueDay { get; set; }
-    public int ClosingDay { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public int DiaVencimento { get; set; }
+    public int DiaFechamento { get; set; }
 }
 
-public class CreateCreditCardDto
+public class CriarCartaoCreditoDto
 {
-    public string Name { get; set; } = string.Empty;
-    public int DueDay { get; set; }
-    public int ClosingDay { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public int DiaVencimento { get; set; }
+    public int DiaFechamento { get; set; }
 }
 
-public class UpdateCreditCardDto
+public class AtualizarCartaoCreditoDto
 {
-    public string Name { get; set; } = string.Empty;
-    public int DueDay { get; set; }
-    public int ClosingDay { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public int DiaVencimento { get; set; }
+    public int DiaFechamento { get; set; }
 }

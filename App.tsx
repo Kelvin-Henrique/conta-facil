@@ -9,13 +9,14 @@ import FixedBillsManager from './components/FixedBillsManager';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
-import { BankAccount, CreditCard, Purchase, AccountTransaction, FixedBill } from './types';
+import { NotificationProvider } from './components/NotificationSystem';
+import { ContaBancaria, CartaoCredito, Compra, TransacaoConta, ContaFixa } from './types';
 import { 
-  bankAccountsApi, 
-  creditCardsApi, 
-  purchasesApi, 
-  accountTransactionsApi, 
-  fixedBillsApi 
+  contasBancariasApi, 
+  cartoesCreditoApi, 
+  comprasApi, 
+  transacoesContaApi, 
+  contasFixasApi 
 } from './services/apiService';
 
 const App: React.FC = () => {
@@ -35,22 +36,22 @@ const App: React.FC = () => {
     }
   });
 
-  const [accounts, setAccounts] = useState<BankAccount[]>([]);
-  const [cards, setCards] = useState<CreditCard[]>([]);
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [accountTransactions, setAccountTransactions] = useState<AccountTransaction[]>([]);
-  const [fixedBills, setFixedBills] = useState<FixedBill[]>([]);
+  const [accounts, setAccounts] = useState<ContaBancaria[]>([]);
+  const [cards, setCards] = useState<CartaoCredito[]>([]);
+  const [purchases, setPurchases] = useState<Compra[]>([]);
+  const [accountTransactions, setAccountTransactions] = useState<TransacaoConta[]>([]);
+  const [fixedBills, setFixedBills] = useState<ContaFixa[]>([]);
 
   // Carregar dados da API
   const loadAllData = async () => {
     try {
       setLoading(true);
       const [accountsData, cardsData, purchasesData, transactionsData, billsData] = await Promise.all([
-        bankAccountsApi.getAll(),
-        creditCardsApi.getAll(),
-        purchasesApi.getAll(),
-        accountTransactionsApi.getAll(),
-        fixedBillsApi.getAll(),
+        contasBancariasApi.getAll(),
+        cartoesCreditoApi.getAll(),
+        comprasApi.getAll(),
+        transacoesContaApi.getAll(),
+        contasFixasApi.getAll(),
       ]);
       
       setAccounts(accountsData);
@@ -72,19 +73,19 @@ const App: React.FC = () => {
     }
   }, [user]);
 
-  const handleAddAccountTransaction = async (transaction: AccountTransaction) => {
+  const handleAddAccountTransaction = async (transaction: TransacaoConta) => {
     try {
-      const created = await accountTransactionsApi.create(transaction);
+      const created = await transacoesContaApi.create(transaction);
       setAccountTransactions(prev => [...prev, created]);
       
       // Atualizar saldo localmente
-      const account = accounts.find(acc => acc.id === transaction.accountId);
+      const account = accounts.find(acc => acc.id === transaction.contaBancariaId);
       if (account) {
-        const updatedBalance = account.balance - transaction.amount;
-        await bankAccountsApi.update(account.id, { balance: updatedBalance });
+        const updatedBalance = account.saldo - transaction.valor;
+        await contasBancariasApi.update(account.id, { saldo: updatedBalance });
         setAccounts(prevAccounts => 
           prevAccounts.map(acc => 
-            acc.id === transaction.accountId ? { ...acc, balance: updatedBalance } : acc
+            acc.id === transaction.contaBancariaId ? { ...acc, saldo: updatedBalance } : acc
           )
         );
       }
@@ -99,16 +100,16 @@ const App: React.FC = () => {
       const transaction = accountTransactions.find(t => t.id === id);
       if (!transaction) return;
       
-      await accountTransactionsApi.delete(id);
+      await transacoesContaApi.delete(id);
       
       // Restaurar saldo
-      const account = accounts.find(acc => acc.id === transaction.accountId);
+      const account = accounts.find(acc => acc.id === transaction.contaBancariaId);
       if (account) {
-        const updatedBalance = account.balance + transaction.amount;
-        await bankAccountsApi.update(account.id, { balance: updatedBalance });
+        const updatedBalance = account.saldo + transaction.valor;
+        await contasBancariasApi.update(account.id, { saldo: updatedBalance });
         setAccounts(prevAccounts => 
           prevAccounts.map(acc => 
-            acc.id === transaction.accountId ? { ...acc, balance: updatedBalance } : acc
+            acc.id === transaction.contaBancariaId ? { ...acc, saldo: updatedBalance } : acc
           )
         );
       }
@@ -156,7 +157,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
+    <NotificationProvider>
       {!user ? (
         authView === 'login' ? (
           <Login 
@@ -195,7 +196,7 @@ const App: React.FC = () => {
           {renderContent()}
         </Layout>
       )}
-    </>
+    </NotificationProvider>
   );
 };
 

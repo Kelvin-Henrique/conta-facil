@@ -8,36 +8,36 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // User
-        CreateMap<User, UserDto>();
-        CreateMap<CreateUserDto, User>();
-        CreateMap<UpdateUserDto, User>();
+        // Usuario
+        CreateMap<Usuario, UsuarioDto>();
+        CreateMap<CriarUsuarioDto, Usuario>();
+        CreateMap<AtualizarUsuarioDto, Usuario>();
 
-        // BankAccount
-        CreateMap<BankAccount, BankAccountDto>();
-        CreateMap<CreateBankAccountDto, BankAccount>();
-        CreateMap<UpdateBankAccountDto, BankAccount>();
+        // ContaBancaria
+        CreateMap<ContaBancaria, ContaBancariaDto>();
+        CreateMap<CriarContaBancariaDto, ContaBancaria>();
+        CreateMap<AtualizarContaBancariaDto, ContaBancaria>();
 
-        // CreditCard
-        CreateMap<CreditCard, CreditCardDto>();
-        CreateMap<CreateCreditCardDto, CreditCard>();
-        CreateMap<UpdateCreditCardDto, CreditCard>();
+        // CartaoCredito
+        CreateMap<CartaoCredito, CartaoCreditoDto>();
+        CreateMap<CriarCartaoCreditoDto, CartaoCredito>();
+        CreateMap<AtualizarCartaoCreditoDto, CartaoCredito>();
 
-        // Purchase
-        CreateMap<Purchase, PurchaseDto>()
-            .ForMember(dest => dest.CreditCardName, opt => opt.MapFrom(src => src.CreditCard.Name));
-        CreateMap<CreatePurchaseDto, Purchase>();
-        CreateMap<UpdatePurchaseDto, Purchase>();
+        // Compra
+        CreateMap<Compra, CompraDto>()
+            .ForMember(dest => dest.NomeCartaoCredito, opt => opt.MapFrom(src => src.CartaoCredito.Nome));
+        CreateMap<CriarCompraDto, Compra>();
+        CreateMap<AtualizarCompraDto, Compra>();
 
-        // AccountTransaction
-        CreateMap<AccountTransaction, AccountTransactionDto>()
-            .ForMember(dest => dest.BankAccountName, opt => opt.MapFrom(src => src.BankAccount.Name));
-        CreateMap<CreateAccountTransactionDto, AccountTransaction>();
-        CreateMap<UpdateAccountTransactionDto, AccountTransaction>();
+        // TransacaoConta
+        CreateMap<TransacaoConta, TransacaoContaDto>()
+            .ForMember(dest => dest.NomeContaBancaria, opt => opt.MapFrom(src => src.ContaBancaria.Nome));
+        CreateMap<CriarTransacaoContaDto, TransacaoConta>();
+        CreateMap<AtualizarTransacaoContaDto, TransacaoConta>();
 
-        // FixedBill
-        CreateMap<FixedBill, FixedBillDto>();
-        CreateMap<CreateFixedBillDto, FixedBill>();
-        CreateMap<UpdateFixedBillDto, FixedBill>();
+        // ContaFixa
+        CreateMap<ContaFixa, ContaFixaDto>();
+        CreateMap<CriarContaFixaDto, ContaFixa>();
+        CreateMap<AtualizarContaFixaDto, ContaFixa>();
     }
 }

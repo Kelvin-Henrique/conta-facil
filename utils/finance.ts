@@ -1,5 +1,5 @@
 
-import { Purchase, CreditCard, BillItem, MonthlyBill } from '../types';
+import { Compra, CartaoCredito, ItemFatura, FaturaMensal } from '../types';
 
 export const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -8,33 +8,33 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export const getBestDayToBuy = (closingDay: number) => {
+export const getBestDayToBuy = (diaFechamento: number) => {
   // O melhor dia é o dia seguinte ao fechamento
-  let bestDay = closingDay + 1;
+  let bestDay = diaFechamento + 1;
   if (bestDay > 31) bestDay = 1;
   return bestDay;
 };
 
-export const calculateBills = (purchases: Purchase[], card: CreditCard): MonthlyBill[] => {
-  const bills: { [key: string]: MonthlyBill } = {};
+export const calculateBills = (compras: Compra[], cartao: CartaoCredito): FaturaMensal[] => {
+  const bills: { [key: string]: FaturaMensal } = {};
 
-  purchases.forEach((p) => {
-    if (p.cardId !== card.id) return;
+  compras.forEach((p) => {
+    if (p.cartaoCreditoId !== cartao.id) return;
 
     // Parse robusto da data YYYY-MM-DD para evitar problemas de fuso horário
-    const [year, month, day] = p.date.split('-').map(Number);
+    const [year, month, day] = p.data.split('-').map(Number);
     
     // Lógica: Se a compra for DEPOIS do dia de fechamento, ela cai na fatura do MÊS SEGUINTE
     // Ex: Compra dia 10, Fechamento dia 5 -> startMonthOffset = 1 (próximo mês)
     // Ex: Compra dia 2, Fechamento dia 5 -> startMonthOffset = 0 (mês atual)
-    let startMonthOffset = day > card.closingDay ? 1 : 0;
+    let startMonthOffset = day > cartao.diaFechamento ? 1 : 0;
     
-    const amountPerInstallment = p.totalAmount / p.installments;
+    const amountPerInstallment = p.valorTotal / p.parcelas;
 
-    for (let i = 0; i < p.installments; i++) {
+    for (let i = 0; i < p.parcelas; i++) {
       // O mês da fatura alvo é: mês da compra (0-indexed) + offset de fechamento + índice da parcela
       // Não adicionamos mais o "+ 1" fixo para que compras antes do fechamento apareçam no mês atual
-      const targetDate = new Date(year, (month - 1) + i + startMonthOffset, card.dueDay);
+      const targetDate = new Date(year, (month - 1) + i + startMonthOffset, cartao.diaVencimento);
       
       const billMonth = targetDate.getMonth();
       const billYear = targetDate.getFullYear();
@@ -42,29 +42,29 @@ export const calculateBills = (purchases: Purchase[], card: CreditCard): Monthly
 
       if (!bills[key]) {
         bills[key] = {
-          month: billMonth,
-          year: billYear,
+          mes: billMonth,
+          ano: billYear,
           total: 0,
-          items: [],
+          itens: [],
         };
       }
 
       bills[key].total += amountPerInstallment;
-      bills[key].items.push({
-        purchaseId: p.id,
-        description: p.description,
-        category: p.category,
-        installmentNumber: i + 1,
-        totalInstallments: p.installments,
-        amount: amountPerInstallment,
-        date: p.date
+      bills[key].itens.push({
+        compraId: p.id,
+        descricao: p.descricao,
+        categoria: p.categoria,
+        numeroParcela: i + 1,
+        totalParcelas: p.parcelas,
+        valor: amountPerInstallment,
+        data: p.data
       });
     }
   });
 
   // Retorna as faturas ordenadas por data
   return Object.values(bills).sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year;
-    return a.month - b.month;
+    if (a.ano !== b.ano) return a.ano - b.ano;
+    return a.mes - b.mes;
   });
 };

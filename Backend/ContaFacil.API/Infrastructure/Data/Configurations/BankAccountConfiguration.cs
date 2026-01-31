@@ -4,33 +4,33 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ContaFacil.API.Infrastructure.Data.Configurations;
 
-public class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
+public class BankAccountConfiguration : IEntityTypeConfiguration<ContaBancaria>
 {
-    public void Configure(EntityTypeBuilder<BankAccount> builder)
+    public void Configure(EntityTypeBuilder<ContaBancaria> builder)
     {
         builder.ToTable("BankAccounts");
         
         builder.HasKey(x => x.Id);
         
-        builder.Property(x => x.Name)
+        builder.Property(x => x.Nome)
             .IsRequired()
             .HasMaxLength(100);
             
-        builder.Property(x => x.BankName)
+        builder.Property(x => x.NomeBanco)
             .IsRequired()
             .HasMaxLength(100);
             
-        builder.Property(x => x.Balance)
+        builder.Property(x => x.Saldo)
             .HasPrecision(18, 2);
             
-        builder.Property(x => x.CreatedAt)
+        builder.Property(x => x.CriadoEm)
             .IsRequired();
             
-        builder.Property(x => x.UpdatedAt);
+        builder.Property(x => x.AtualizadoEm);
             
-        builder.HasMany(x => x.Transactions)
-            .WithOne(x => x.BankAccount)
-            .HasForeignKey(x => x.BankAccountId)
+        builder.HasMany(x => x.Transacoes)
+            .WithOne(x => x.ContaBancaria)
+            .HasForeignKey(x => x.ContaBancariaId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

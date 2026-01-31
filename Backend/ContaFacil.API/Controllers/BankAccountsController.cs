@@ -8,50 +8,50 @@ namespace ContaFacil.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BankAccountsController : ControllerBase
+public class ContasBancariasController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public BankAccountsController(IMediator mediator)
+    public ContasBancariasController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<BankAccountDto>>> GetAll()
+    public async Task<ActionResult<List<ContaBancariaDto>>> ObterTodas()
     {
-        var result = await _mediator.Send(new GetAllBankAccountsQuery());
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterTodasContasBancariasQuery());
+        return Ok(resultado);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<BankAccountDto>> GetById(Guid id)
+    public async Task<ActionResult<ContaBancariaDto>> ObterPorId(Guid id)
     {
-        var result = await _mediator.Send(new GetBankAccountByIdQuery(id));
+        var resultado = await _mediator.Send(new ObterContaBancariaPorIdQuery(id));
         
-        if (result == null)
+        if (resultado == null)
             return NotFound(new { message = "Conta bancária não encontrada" });
 
-        return Ok(result);
+        return Ok(resultado);
     }
 
     [HttpPost]
-    public async Task<ActionResult<BankAccountDto>> Create([FromBody] CreateBankAccountDto dto)
+    public async Task<ActionResult<ContaBancariaDto>> Criar([FromBody] CriarContaBancariaDto dto)
     {
-        var command = new CreateBankAccountCommand(dto.Name, dto.BankName, dto.Balance);
-        var result = await _mediator.Send(command);
+        var comando = new CriarContaBancariaCommand(dto.Nome, dto.NomeBanco, dto.Saldo);
+        var resultado = await _mediator.Send(comando);
         
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(ObterPorId), new { id = resultado.Id }, resultado);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<BankAccountDto>> Update(Guid id, [FromBody] UpdateBankAccountDto dto)
+    public async Task<ActionResult<ContaBancariaDto>> Atualizar(Guid id, [FromBody] AtualizarContaBancariaDto dto)
     {
         try
         {
-            var command = new UpdateBankAccountCommand(id, dto.Name, dto.BankName, dto.Balance);
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var comando = new AtualizarContaBancariaCommand(id, dto.Nome, dto.NomeBanco, dto.Saldo);
+            var resultado = await _mediator.Send(comando);
+            return Ok(resultado);
         }
         catch (KeyNotFoundException ex)
         {
@@ -60,11 +60,11 @@ public class BankAccountsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Excluir(Guid id)
     {
-        var result = await _mediator.Send(new DeleteBankAccountCommand(id));
+        var resultado = await _mediator.Send(new ExcluirContaBancariaCommand(id));
         
-        if (!result)
+        if (!resultado)
             return NotFound(new { message = "Conta bancária não encontrada" });
 
         return NoContent();

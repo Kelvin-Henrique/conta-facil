@@ -1,20 +1,20 @@
 namespace ContaFacil.API.Domain.Entities;
 
-public class FixedBill
+public class ContaFixa
 {
     public Guid Id { get; set; }
-    public int UserId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public int DueDay { get; set; }
-    public int Month { get; set; }
-    public int Year { get; set; }
-    public bool IsPaid { get; set; }
-    public bool IsRecurring { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public int UsuarioId { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public decimal Valor { get; set; }
+    public int DiaVencimento { get; set; }
+    public int Mes { get; set; }
+    public int Ano { get; set; }
+    public bool Pago { get; set; }
+    public bool Recorrente { get; set; }
+    public DateTime CriadoEm { get; set; }
+    public DateTime? AtualizadoEm { get; set; }
     
     // Navigation Properties
-    public User User { get; set; } = null!;
+    public Usuario Usuario { get; set; } = null!;
 }

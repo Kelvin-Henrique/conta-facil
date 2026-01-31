@@ -10,12 +10,12 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<BankAccount> BankAccounts { get; set; }
-    public DbSet<CreditCard> CreditCards { get; set; }
-    public DbSet<Purchase> Purchases { get; set; }
-    public DbSet<AccountTransaction> AccountTransactions { get; set; }
-    public DbSet<FixedBill> FixedBills { get; set; }
+    public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<ContaBancaria> ContasBancarias { get; set; }
+    public DbSet<CartaoCredito> CartoesCredito { get; set; }
+    public DbSet<Compra> Compras { get; set; }
+    public DbSet<TransacaoConta> TransacoesConta { get; set; }
+    public DbSet<ContaFixa> ContasFixas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,11 +30,11 @@ public class ApplicationDbContext : DbContext
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
+                entry.Property("CriadoEm").CurrentValue = DateTime.UtcNow;
             }
             else if (entry.State == EntityState.Modified)
             {
-                entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+                entry.Property("AtualizadoEm").CurrentValue = DateTime.UtcNow;
             }
         }
 

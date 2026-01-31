@@ -8,71 +8,71 @@ namespace ContaFacil.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PurchasesController : ControllerBase
+public class ComprasController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public PurchasesController(IMediator mediator)
+    public ComprasController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<PurchaseDto>>> GetAll()
+    public async Task<ActionResult<List<CompraDto>>> ObterTodas()
     {
-        var result = await _mediator.Send(new GetAllPurchasesQuery());
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterTodasComprasQuery());
+        return Ok(resultado);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<PurchaseDto>> GetById(Guid id)
+    public async Task<ActionResult<CompraDto>> ObterPorId(Guid id)
     {
-        var result = await _mediator.Send(new GetPurchaseByIdQuery(id));
+        var resultado = await _mediator.Send(new ObterCompraPorIdQuery(id));
         
-        if (result == null)
+        if (resultado == null)
             return NotFound(new { message = "Compra não encontrada" });
 
-        return Ok(result);
+        return Ok(resultado);
     }
 
     [HttpGet("by-card/{creditCardId}")]
-    public async Task<ActionResult<List<PurchaseDto>>> GetByCreditCard(Guid creditCardId)
+    public async Task<ActionResult<List<CompraDto>>> ObterPorCartaoCredito(Guid creditCardId)
     {
-        var result = await _mediator.Send(new GetPurchasesByCreditCardQuery(creditCardId));
-        return Ok(result);
+        var resultado = await _mediator.Send(new ObterComprasPorCartaoCreditoQuery(creditCardId));
+        return Ok(resultado);
     }
 
     [HttpPost]
-    public async Task<ActionResult<PurchaseDto>> Create([FromBody] CreatePurchaseDto dto)
+    public async Task<ActionResult<CompraDto>> Criar([FromBody] CriarCompraDto dto)
     {
-        var command = new CreatePurchaseCommand(
-            dto.CreditCardId,
-            dto.Description,
-            dto.Category,
-            dto.Date,
-            dto.TotalAmount,
-            dto.Installments
+        var comando = new CriarCompraCommand(
+            dto.CartaoCreditoId,
+            dto.Descricao,
+            dto.Categoria,
+            dto.Data,
+            dto.ValorTotal,
+            dto.Parcelas
         );
-        var result = await _mediator.Send(command);
+        var resultado = await _mediator.Send(comando);
         
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(ObterPorId), new { id = resultado.Id }, resultado);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<PurchaseDto>> Update(Guid id, [FromBody] UpdatePurchaseDto dto)
+    public async Task<ActionResult<CompraDto>> Atualizar(Guid id, [FromBody] AtualizarCompraDto dto)
     {
         try
         {
-            var command = new UpdatePurchaseCommand(
+            var comando = new AtualizarCompraCommand(
                 id,
-                dto.Description,
-                dto.Category,
-                dto.Date,
-                dto.TotalAmount,
-                dto.Installments
+                dto.Descricao,
+                dto.Categoria,
+                dto.Data,
+                dto.ValorTotal,
+                dto.Parcelas
             );
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var resultado = await _mediator.Send(comando);
+            return Ok(resultado);
         }
         catch (KeyNotFoundException ex)
         {
@@ -81,11 +81,11 @@ public class PurchasesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Excluir(Guid id)
     {
-        var result = await _mediator.Send(new DeletePurchaseCommand(id));
+        var resultado = await _mediator.Send(new ExcluirCompraCommand(id));
         
-        if (!result)
+        if (!resultado)
             return NotFound(new { message = "Compra não encontrada" });
 
         return NoContent();

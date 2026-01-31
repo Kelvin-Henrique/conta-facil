@@ -1,29 +1,29 @@
 namespace ContaFacil.API.Application.DTOs;
 
-public class AccountTransactionDto
+public class TransacaoContaDto
 {
     public Guid Id { get; set; }
-    public Guid BankAccountId { get; set; }
-    public string BankAccountName { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal Amount { get; set; }
+    public Guid ContaBancariaId { get; set; }
+    public string NomeContaBancaria { get; set; } = string.Empty;
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal Valor { get; set; }
 }
 
-public class CreateAccountTransactionDto
+public class CriarTransacaoContaDto
 {
-    public Guid BankAccountId { get; set; }
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal Amount { get; set; }
+    public Guid ContaBancariaId { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal Valor { get; set; }
 }
 
-public class UpdateAccountTransactionDto
+public class AtualizarTransacaoContaDto
 {
-    public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public decimal Amount { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public DateTime Data { get; set; }
+    public decimal Valor { get; set; }
 }

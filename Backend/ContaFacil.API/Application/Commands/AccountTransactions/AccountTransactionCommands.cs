@@ -3,20 +3,20 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Commands.AccountTransactions;
 
-public record CreateAccountTransactionCommand(
-    Guid BankAccountId,
-    string Description,
-    string Category,
-    DateTime Date,
-    decimal Amount
-) : IRequest<AccountTransactionDto>;
+public record CriarTransacaoContaCommand(
+    Guid ContaBancariaId,
+    string Descricao,
+    string Categoria,
+    DateTime Data,
+    decimal Valor
+) : IRequest<TransacaoContaDto>;
 
-public record UpdateAccountTransactionCommand(
+public record AtualizarTransacaoContaCommand(
     Guid Id,
-    string Description,
-    string Category,
-    DateTime Date,
-    decimal Amount
-) : IRequest<AccountTransactionDto>;
+    string Descricao,
+    string Categoria,
+    DateTime Data,
+    decimal Valor
+) : IRequest<TransacaoContaDto>;
 
-public record DeleteAccountTransactionCommand(Guid Id) : IRequest<bool>;
+public record ExcluirTransacaoContaCommand(Guid Id) : IRequest<bool>;

@@ -3,22 +3,22 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Commands.Purchases;
 
-public record CreatePurchaseCommand(
-    Guid CreditCardId,
-    string Description,
-    string Category,
-    DateTime Date,
-    decimal TotalAmount,
-    int Installments
-) : IRequest<PurchaseDto>;
+public record CriarCompraCommand(
+    Guid CartaoCreditoId,
+    string Descricao,
+    string Categoria,
+    DateTime Data,
+    decimal ValorTotal,
+    int Parcelas
+) : IRequest<CompraDto>;
 
-public record UpdatePurchaseCommand(
+public record AtualizarCompraCommand(
     Guid Id,
-    string Description,
-    string Category,
-    DateTime Date,
-    decimal TotalAmount,
-    int Installments
-) : IRequest<PurchaseDto>;
+    string Descricao,
+    string Categoria,
+    DateTime Data,
+    decimal ValorTotal,
+    int Parcelas
+) : IRequest<CompraDto>;
 
-public record DeletePurchaseCommand(Guid Id) : IRequest<bool>;
+public record ExcluirCompraCommand(Guid Id) : IRequest<bool>;

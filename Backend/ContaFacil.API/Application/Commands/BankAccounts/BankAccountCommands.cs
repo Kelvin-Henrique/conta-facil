@@ -3,17 +3,17 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Commands.BankAccounts;
 
-public record CreateBankAccountCommand(
-    string Name,
-    string BankName,
-    decimal Balance
-) : IRequest<BankAccountDto>;
+public record CriarContaBancariaCommand(
+    string Nome,
+    string NomeBanco,
+    decimal Saldo
+) : IRequest<ContaBancariaDto>;
 
-public record UpdateBankAccountCommand(
+public record AtualizarContaBancariaCommand(
     Guid Id,
-    string Name,
-    string BankName,
-    decimal Balance
-) : IRequest<BankAccountDto>;
+    string Nome,
+    string NomeBanco,
+    decimal Saldo
+) : IRequest<ContaBancariaDto>;
 
-public record DeleteBankAccountCommand(Guid Id) : IRequest<bool>;
+public record ExcluirContaBancariaCommand(Guid Id) : IRequest<bool>;

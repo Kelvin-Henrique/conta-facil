@@ -3,15 +3,15 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Commands.Users
 {
-    // Create User
-    public record CreateUserCommand(string FirebaseUid, string Email, string Name) : IRequest<UserDto>;
+    // Criar Usuario
+    public record CriarUsuarioCommand(string FirebaseUid, string Email, string Nome) : IRequest<UsuarioDto>;
 
-    // Update User
-    public record UpdateUserCommand(int Id, string Name) : IRequest<UserDto>;
+    // Atualizar Usuario
+    public record AtualizarUsuarioCommand(int Id, string Nome) : IRequest<UsuarioDto>;
 
-    // Update Last Login
-    public record UpdateLastLoginCommand(string FirebaseUid) : IRequest<Unit>;
+    // Atualizar Ultimo Login
+    public record AtualizarUltimoLoginCommand(string FirebaseUid) : IRequest<Unit>;
 
-    // Delete User
-    public record DeleteUserCommand(int Id) : IRequest<Unit>;
+    // Excluir Usuario
+    public record ExcluirUsuarioCommand(int Id) : IRequest<Unit>;
 }

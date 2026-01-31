@@ -1,23 +1,23 @@
 namespace ContaFacil.API.Application.DTOs;
 
-public class BankAccountDto
+public class ContaBancariaDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string BankName { get; set; } = string.Empty;
-    public decimal Balance { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string NomeBanco { get; set; } = string.Empty;
+    public decimal Saldo { get; set; }
 }
 
-public class CreateBankAccountDto
+public class CriarContaBancariaDto
 {
-    public string Name { get; set; } = string.Empty;
-    public string BankName { get; set; } = string.Empty;
-    public decimal Balance { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string NomeBanco { get; set; } = string.Empty;
+    public decimal Saldo { get; set; }
 }
 
-public class UpdateBankAccountDto
+public class AtualizarContaBancariaDto
 {
-    public string Name { get; set; } = string.Empty;
-    public string BankName { get; set; } = string.Empty;
-    public decimal Balance { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string NomeBanco { get; set; } = string.Empty;
+    public decimal Saldo { get; set; }
 }

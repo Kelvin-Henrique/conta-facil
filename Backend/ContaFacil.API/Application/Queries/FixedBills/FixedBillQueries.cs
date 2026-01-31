@@ -3,8 +3,8 @@ using MediatR;
 
 namespace ContaFacil.API.Application.Queries.FixedBills;
 
-public record GetAllFixedBillsQuery : IRequest<List<FixedBillDto>>;
+public record ObterTodasContasFixasQuery : IRequest<List<ContaFixaDto>>;
 
-public record GetFixedBillByIdQuery(Guid Id) : IRequest<FixedBillDto?>;
+public record ObterContaFixaPorIdQuery(Guid Id) : IRequest<ContaFixaDto?>;
 
-public record GetFixedBillsByMonthYearQuery(int Month, int Year) : IRequest<List<FixedBillDto>>;
+public record ObterContasFixasPorMesAnoQuery(int Mes, int Ano) : IRequest<List<ContaFixaDto>>;

@@ -1,27 +1,63 @@
 
 import React, { useState, useEffect } from 'react';
-import { Purchase, CreditCard } from '../types';
+import { Compra, CartaoCredito } from '../types';
 import { ICONS, CATEGORIES } from '../constants';
-import { purchasesApi } from '../services/apiService';
+import { comprasApi } from '../services/apiService';
+import { useNotification } from './NotificationSystem';
 
 interface TransactionsManagerProps {
   isOpen: boolean;
   onClose: () => void;
-  cards: CreditCard[];
+  cards: CartaoCredito[];
   selectedCardId?: string;
-  setPurchases: React.Dispatch<React.SetStateAction<Purchase[]>>;
+  setPurchases: React.Dispatch<React.SetStateAction<Compra[]>>;
+  editingPurchase?: Compra | null;
 }
 
-const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClose, cards, selectedCardId, setPurchases }) => {
+const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClose, cards, selectedCardId, setPurchases, editingPurchase }) => {
+  const { showSuccess, showError } = useNotification();
+  
   const [formData, setFormData] = useState({
-    description: '',
-    category: CATEGORIES[0],
-    date: new Date().toISOString().split('T')[0],
-    totalAmount: '', // Stored as formatted string "0,00"
-    installments: 1
+    descricao: '',
+    categoria: CATEGORIES[0],
+    data: new Date().toISOString().split('T')[0],
+    valorTotal: '', // Stored as formatted string "0,00"
+    parcelas: 1
   });
 
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Format number to currency string
+  const formatNumberToCurrency = (value: number): string => {
+    const valueStr = Math.round(value * 100).toString();
+    const digits = valueStr.padStart(3, '0');
+    const integerPart = digits.slice(0, -2);
+    const decimalPart = digits.slice(-2);
+    const formattedInteger = parseInt(integerPart).toLocaleString('pt-BR');
+    return `${formattedInteger},${decimalPart}`;
+  };
+
+  // Load editing data when modal opens with a purchase
+  useEffect(() => {
+    if (isOpen && editingPurchase) {
+      setFormData({
+        descricao: editingPurchase.descricao,
+        categoria: editingPurchase.categoria,
+        data: new Date(editingPurchase.data).toISOString().split('T')[0],
+        valorTotal: formatNumberToCurrency(editingPurchase.valorTotal),
+        parcelas: editingPurchase.parcelas
+      });
+    } else if (isOpen && !editingPurchase) {
+      setFormData({
+        descricao: '',
+        categoria: CATEGORIES[0],
+        data: new Date().toISOString().split('T')[0],
+        valorTotal: '',
+        parcelas: 1
+      });
+    }
+  }, [isOpen, editingPurchase]);
 
   if (!isOpen) return null;
 
@@ -56,51 +92,69 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     const formatted = formatInputToCurrency(rawValue);
-    setFormData({ ...formData, totalAmount: formatted });
+    setFormData({ ...formData, valorTotal: formatted });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetCardId = selectedCardId || cards[0]?.id;
-    const numericAmount = parseCurrencyToNumber(formData.totalAmount);
+    if (isLoading) return; // Prevent double submission
+    
+    const targetCardId = selectedCardId || editingPurchase?.cartaoCreditoId || cards[0]?.id;
+    const numericAmount = parseCurrencyToNumber(formData.valorTotal);
 
-    if (!formData.description || !targetCardId || numericAmount <= 0) return;
+    if (!formData.descricao || !targetCardId || numericAmount <= 0) return;
+
+    setIsLoading(true);
 
     try {
-      const newPurchase = {
-        description: formData.description,
-        cardId: targetCardId,
-        category: formData.category,
-        date: formData.date,
-        totalAmount: numericAmount,
-        installments: formData.installments
-      };
+      if (editingPurchase) {
+        // Update existing purchase
+        const updatedPurchase = {
+          descricao: formData.descricao,
+          cartaoCreditoId: targetCardId,
+          categoria: formData.categoria,
+          data: formData.data,
+          valorTotal: numericAmount,
+          parcelas: formData.parcelas
+        };
 
-      const created = await purchasesApi.create(newPurchase);
-      setPurchases(prev => [...prev, created]);
-      setFeedback("Compra lançada com sucesso!");
+        const updated = await comprasApi.update(editingPurchase.id, updatedPurchase);
+        setPurchases(prev => prev.map(p => p.id === editingPurchase.id ? updated : p));
+        setFeedback("Compra atualizada com sucesso!");
+      } else {
+        // Create new purchase
+        const newPurchase = {
+          descricao: formData.descricao,
+          cartaoCreditoId: targetCardId,
+          categoria: formData.categoria,
+          data: formData.data,
+          valorTotal: numericAmount,
+          parcelas: formData.parcelas
+        };
+
+        const created = await comprasApi.create(newPurchase);
+        setPurchases(prev => [...prev, created]);
+        setFeedback("Compra lançada com sucesso!");
+      }
+      
       setTimeout(() => {
-          setFeedback(null);
-          onClose();
-          setFormData({
-            description: '',
-            category: CATEGORIES[0],
-            date: new Date().toISOString().split('T')[0],
-            totalAmount: '',
-            installments: 1
-          });
-      }, 1200);
+        setFeedback(null);
+        setIsLoading(false);
+        showSuccess(editingPurchase ? 'Compra atualizada com sucesso!' : 'Compra lançada com sucesso!');
+        onClose();
+      }, 800);
     } catch (error) {
-      console.error('Erro ao criar compra:', error);
-      setFeedback("Erro ao lançar compra");
-      setTimeout(() => setFeedback(null), 2000);
+      console.error('Erro ao salvar compra:', error);
+      showError('Erro ao salvar compra. Tente novamente.');
+      setFeedback(null);
+      setIsLoading(false);
     }
   };
 
   const adjustInstallments = (delta: number) => {
     setFormData(prev => ({
       ...prev,
-      installments: Math.max(1, Math.min(24, prev.installments + delta))
+      parcelas: Math.max(1, Math.min(24, prev.parcelas + delta))
     }));
   };
 
@@ -116,9 +170,11 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
               <ICONS.Plus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800 leading-tight">Novo Lançamento</h2>
+              <h2 className="text-xl font-bold text-slate-800 leading-tight">
+                {editingPurchase ? 'Editar Lançamento' : 'Novo Lançamento'}
+              </h2>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                Vinculado a: {cards.find(c => c.id === selectedCardId)?.name || 'Cartão Selecionado'}
+                Vinculado a: {cards.find(c => c.id === (selectedCardId || editingPurchase?.cartaoCreditoId))?.nome || 'Cartão Selecionado'}
               </p>
             </div>
           </div>
@@ -134,8 +190,8 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
               autoFocus
               required
               type="text"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              value={formData.descricao}
+              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
               className={inputClass}
               placeholder="Ex: Supermercado"
             />
@@ -145,8 +201,8 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
             <div>
               <label className={labelClass}>Categoria</label>
               <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                value={formData.categoria}
+                onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                 className={inputClass}
               >
                 {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -157,8 +213,8 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
               <input
                 type="date"
                 required
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                value={formData.data}
+                onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                 className={`${inputClass} cursor-pointer`}
               />
             </div>
@@ -174,7 +230,7 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
                   inputMode="numeric"
                   required
                   placeholder="0,00"
-                  value={formData.totalAmount}
+                  value={formData.valorTotal}
                   onChange={handleAmountChange}
                   className={`${inputClass} pl-11`}
                 />
@@ -191,7 +247,7 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>
                 </button>
                 <div className="flex-1 text-center font-bold text-slate-900 text-lg">
-                  {formData.installments}x
+                  {formData.parcelas}x
                 </div>
                 <button
                   type="button"
@@ -204,30 +260,39 @@ const TransactionsManager: React.FC<TransactionsManagerProps> = ({ isOpen, onClo
             </div>
           </div>
 
-          {formData.installments > 1 && formData.totalAmount && (
+          {formData.parcelas > 1 && formData.valorTotal && (
             <div className="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex justify-between items-center">
                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-tighter">Valor da Parcela</span>
                 <span className="text-sm font-black text-indigo-700">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseCurrencyToNumber(formData.totalAmount) / formData.installments)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseCurrencyToNumber(formData.valorTotal) / formData.parcelas)}
                 </span>
             </div>
           )}
 
           <button
             type="submit"
-            disabled={!!feedback}
+            disabled={isLoading || !!feedback}
             className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl flex items-center justify-center gap-2 ${
               feedback 
                 ? 'bg-emerald-500 text-white shadow-emerald-100' 
+                : isLoading
+                ? 'bg-indigo-400 text-white cursor-not-allowed'
                 : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-200 active:scale-[0.98]'
             }`}
           >
-            {feedback ? (
+            {isLoading ? (
+              <>
+                <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Salvando...
+              </>
+            ) : feedback ? (
               <>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                 {feedback}
               </>
-            ) : "Confirmar Lançamento"}
+            ) : editingPurchase ? "Salvar Alterações" : "Confirmar Lançamento"}
           </button>
         </form>
       </div>
